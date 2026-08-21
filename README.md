@@ -1,36 +1,85 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🛍️ Lakshmi Textiles — Real-Time Inventory & POS System
 
-## Getting Started
+A fast, responsive, and easy-to-use textile inventory management and counter billing application tailored for **Lakshmi Textiles**.
 
-First, run the development server:
+Built with **Next.js 16 (Turbopack)**, **React 19**, **Tailwind CSS v4**, **Framer Motion**, and **Lucide Icons**.
 
+---
+
+## 🌟 Key Features
+
+1. **➕ Stock In Entry** (`src/modules/stock-in/`):
+   - Record new inward deliveries from master weavers and textile mills.
+   - Capture quantity, buying cost, selling MRP, supplier, and exact rack/shelf location.
+2. **🛒 Counter Sale & POS Billing** (`src/modules/sales/`):
+   - Quick search by SKU, fabric, color, or shelf.
+   - Immediate automatic stock deduction upon sale with digital invoice & celebration animations.
+3. **📦 "What's In My Shop?" Live Inventory** (`src/modules/inventory-view/`):
+   - Instant answer to *"How many blue cotton sarees do I have right now?"*
+   - Filter by categories (Cotton Sarees, Silk Sarees, Men's Wear, School Uniforms, Dhotis, etc.).
+   - Visual stock health indicators (`🔴 Out of Stock`, `🟠 Running Low`, `🟢 In Stock`, `🟣 Excess / Slow`).
+4. **⚠️ Low Stock & WhatsApp Reorder Center** (`src/modules/low-stock/`):
+   - Real-time stockout emergency alerts to prevent turning away long-distance customers.
+   - 1-Click WhatsApp Purchase Order generator for suppliers and weavers.
+5. **📊 Fast vs. Slow-Moving Insights & Dead Stock** (`src/modules/analytics/`):
+   - Calculates working capital trapped in unsold items (`₹` amount).
+   - Identifies high-velocity cash drivers vs dead stock needing clearance.
+6. **🔄 Presentation Demo Dataset**:
+   - Pre-loaded with realistic regional textile inventory data.
+   - 1-Click "Reset Demo Data" button in header for clean presentation rehearsals.
+
+---
+
+## 🚀 Quick Start & Installation
+
+### Prerequisites
+- Node.js 18+ or Bun 1.0+
+
+### 1. Install Dependencies
+
+Using **Bun** (fastest):
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+bun install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Or using **npm**:
+```bash
+npm install
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 2. Run the Development Server
 
-## Learn More
+```bash
+bun dev
+# or
+npm run dev
+```
 
-To learn more about Next.js, take a look at the following resources:
+Open [http://localhost:3000](http://localhost:3000) in your browser to view the app.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+---
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### 3. Build for Production
 
-## Deploy on Vercel
+```bash
+bun run build
+bun start
+# or
+npm run build
+npm start
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+---
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 👥 Multi-Contributor & AI Agent Guide
+
+The project is structured with strict **modular isolation** to prevent git merge conflicts between contributors:
+
+- **Contributor 1**: Works in `src/modules/stock-in/`, `src/modules/sales/`, and `src/modules/quick-actions/`.
+- **Contributor 2**: Works in `src/modules/inventory-view/`, `src/modules/low-stock/`, and `src/modules/analytics/`.
+
+Refer to:
+- 📖 [docs.md](file:///mnt/sda3/Test-Stuff/hcl/inventory/docs.md) for the complete presentation narrative and feature specifications.
+- 🤖 [AGENTS.md](file:///mnt/sda3/Test-Stuff/hcl/inventory/AGENTS.md) for code conventions and folder boundaries.

@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <!-- Rounded Sandalwood / Terracotta Badge -->
+  <rect width="64" height="64" rx="16" fill="#D96528"/>
+  <rect x="2" y="2" width="60" height="60" rx="14" stroke="#F5EEE3" stroke-width="1.5" stroke-opacity="0.3"/>
+  
+  <!-- Subtle Thread Weave Background Grid Lines -->
+  <path d="M12 24H52M12 40H52M24 12V52M40 12V52" stroke="#F5EEE3" stroke-opacity="0.15" stroke-width="1.5" stroke-dasharray="2 2"/>
+  
+  <!-- Stylized Textile Shuttle & Weave Motif (Golden Sandalwood Tone) -->
+  <path d="M32 14C32 14 44 26 44 34C44 40.6274 38.6274 46 32 46C25.3726 46 20 40.6274 20 34C20 26 32 14 32 14Z" fill="#FBF8F2" fill-opacity="0.95"/>
+  <path d="M32 20C32 20 40 29 40 34C40 38.4183 36.4183 42 32 42C27.5817 42 24 38.4183 24 34C24 29 32 20 32 20Z" fill="#D96528"/>
+  
+  <!-- Center Golden Spool Thread / Loom Core -->
+  <circle cx="32" cy="34" r="4.5" fill="#F5EEE3"/>
+  <circle cx="32" cy="34" r="2" fill="#D96528"/>
+  
+  <!-- Subtle Floating Accent Sparkles -->
+  <path d="M48 18L49.5 22L53.5 23.5L49.5 25L48 29L46.5 25L42.5 23.5L46.5 22L48 18Z" fill="#FBF8F2" fill-opacity="0.9"/>
+  <path d="M16 42L17 45L20 46L17 47L16 50L15 47L12 46L15 45L16 42Z" fill="#FBF8F2" fill-opacity="0.75"/>
+</svg>
