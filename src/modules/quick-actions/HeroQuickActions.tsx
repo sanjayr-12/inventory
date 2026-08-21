@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useInventory } from '@/src/context/InventoryContext';
 import {
   PackagePlus,
@@ -8,250 +8,266 @@ import {
   Boxes,
   AlertTriangle,
   ArrowRight,
+  Search,
   CheckCircle2,
   Lock,
   Flame,
-  Activity,
   TrendingUp,
+  MapPin,
 } from 'lucide-react';
-import { motion } from 'framer-motion';
-import { formatCurrency, formatNumber } from '@/src/lib/utils';
+import { motion, AnimatePresence } from 'framer-motion';
+import { formatCurrency, formatNumber, getStockStatus } from '@/src/lib/utils';
 
 export const HeroQuickActions: React.FC = () => {
-  const { setActiveTab, stats, outOfStockProducts, lowStockProducts, slowMovingProducts } = useInventory();
+  const {
+    setActiveTab,
+    stats,
+    products,
+    outOfStockProducts,
+    lowStockProducts,
+    slowMovingProducts,
+    setSearchQuery,
+  } = useInventory();
+
+  const [instantSearch, setInstantSearch] = useState('');
+
+  // Instant quick search results on Home
+  const searchResults = instantSearch.trim()
+    ? products.filter(
+        (p) =>
+          p.name.toLowerCase().includes(instantSearch.toLowerCase()) ||
+          p.category.toLowerCase().includes(instantSearch.toLowerCase()) ||
+          p.rackLocation.toLowerCase().includes(instantSearch.toLowerCase()) ||
+          (p.color && p.color.toLowerCase().includes(instantSearch.toLowerCase()))
+      ).slice(0, 4)
+    : [];
+
+  const handleSearchResultClick = (productName: string) => {
+    setSearchQuery(productName);
+    setActiveTab('inventory');
+  };
 
   const primaryActions = [
     {
       id: 'stock-in' as const,
-      title: 'STOCK IN',
-      subtitle: 'Record inward deliveries from weavers & mills',
+      title: 'Add New Stock',
+      tagline: 'When fresh goods arrive from weavers',
       metric: `${formatNumber(stats.totalUnitsInStock)} pcs`,
-      metricLabel: 'Total in-shop stock',
-      icon: <PackagePlus className="w-5 h-5 sm:w-6 sm:h-6 text-[#d96528]" />,
-      badge: 'Inward Goods',
-      badgeClass: 'bg-[#faeedf] text-[#c45418] border-[#eed6c0]',
+      metricLabel: 'In shop now',
+      icon: <PackagePlus className="w-7 h-7 text-[#d96528]" />,
+      accentBg: 'bg-[#faeedf]',
+      borderColor: 'border-[#e8dfd1] hover:border-[#d96528]',
     },
     {
       id: 'sales' as const,
-      title: 'SALE / POS',
-      subtitle: 'Counter billing with auto stock reduction',
+      title: 'Bill a Customer',
+      tagline: 'Fast sale & automatic stock deduction',
       metric: `${formatCurrency(stats.todaysRevenue)}`,
-      metricLabel: "Today's counter revenue",
-      icon: <ShoppingCart className="w-5 h-5 sm:w-6 sm:h-6 text-[#2d6a3f]" />,
-      badge: 'Fast Checkout',
-      badgeClass: 'bg-[#eef5ee] text-[#2d6a3f] border-[#d2e4d3]',
+      metricLabel: "Today's sales",
+      icon: <ShoppingCart className="w-7 h-7 text-[#2d6a3f]" />,
+      accentBg: 'bg-[#eef5ee]',
+      borderColor: 'border-[#e8dfd1] hover:border-[#2d6a3f]',
     },
     {
       id: 'inventory' as const,
-      title: "WHAT'S IN SHOP?",
-      subtitle: 'Live shelf counts & instant product lookups',
-      metric: `${stats.totalUniqueProducts} Products`,
-      metricLabel: 'Active catalog lines',
-      icon: <Boxes className="w-5 h-5 sm:w-6 sm:h-6 text-[#b45309]" />,
-      badge: 'Shelf Visibility',
-      badgeClass: 'bg-[#fcf3e6] text-[#b45309] border-[#fae2c0]',
+      title: 'Check Shop Stock',
+      tagline: 'See what is on shelves right now',
+      metric: `${stats.totalUniqueProducts} Types`,
+      metricLabel: 'Catalog items',
+      icon: <Boxes className="w-7 h-7 text-[#b45309]" />,
+      accentBg: 'bg-[#fcf3e6]',
+      borderColor: 'border-[#e8dfd1] hover:border-[#b45309]',
     },
     {
       id: 'low-stock' as const,
-      title: 'LOW STOCK ALERTS',
-      subtitle: 'Restock triggers & WhatsApp supplier orders',
+      title: 'Items to Reorder',
+      tagline: 'What is low or completely sold out',
       metric: `${outOfStockProducts.length + lowStockProducts.length} Items`,
-      metricLabel: outOfStockProducts.length > 0 ? `${outOfStockProducts.length} Out of Stock!` : 'Restock alerts',
-      icon: <AlertTriangle className="w-5 h-5 sm:w-6 sm:h-6 text-[#b9381e]" />,
-      badge: 'Stock Health',
-      badgeClass: 'bg-[#fdf0ed] text-[#b9381e] border-[#f8d0c8]',
+      metricLabel: outOfStockProducts.length > 0 ? `${outOfStockProducts.length} Sold Out!` : 'Need restock',
+      icon: <AlertTriangle className="w-7 h-7 text-[#b9381e]" />,
+      accentBg: 'bg-[#fdf0ed]',
+      borderColor: 'border-[#e8dfd1] hover:border-[#b9381e]',
     },
   ];
 
   return (
     <div className="space-y-6 sm:space-y-8">
-      {/* Hero Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-stretch">
-        {/* Left Column: Headline & Action Buttons */}
-        <div className="lg:col-span-7 flex flex-col justify-between py-1 sm:py-2 space-y-5 sm:space-y-6">
-          <div className="space-y-3 sm:space-y-4">
-            <div className="inline-flex items-center gap-1.5 sm:gap-2 px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-full bg-[#faeedf] border border-[#eed6c0] text-[#c45418] text-[11px] sm:text-xs font-bold">
-              <Flame className="w-3.5 h-3.5 text-[#d96528] shrink-0" />
-              <span>Real-Time Inventory & POS for Laxmi Textiles</span>
-            </div>
-
-            <h1 className="text-2xl sm:text-4xl lg:text-5xl font-black text-[#1c1917] tracking-tight leading-tight sm:leading-[1.15]">
-              Real-time <span className="text-[#d96528]">stock tracking</span> & counter point of sale.
-            </h1>
-
-            <p className="text-xs sm:text-base text-[#57534e] leading-relaxed">
-              Track incoming goods from weavers, conduct rapid counter billing with automatic stock reduction,
-              and maintain full visibility over store inventory and reorder alerts.
+      {/* 1. TOP QUICK SEARCH BAR (Instant answer for shop staff) */}
+      <div className="bg-white rounded-3xl p-4 sm:p-5 border border-[#e8dfd1] shadow-xs space-y-3">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div>
+            <h2 className="text-base sm:text-lg font-black text-[#1c1917]">
+              Laxmi Textiles Store Register
+            </h2>
+            <p className="text-xs text-[#78716c]">
+              What would you like to check or do today?
             </p>
           </div>
-
-          {/* CTA Buttons */}
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3 pt-1">
-            <button
-              onClick={() => setActiveTab('sales')}
-              className="w-full sm:w-auto px-5 sm:px-6 py-3 sm:py-3.5 rounded-2xl bg-[#d96528] hover:bg-[#c45418] text-white font-extrabold text-xs sm:text-sm shadow-xs transition-all flex items-center justify-center gap-2 cursor-pointer"
-            >
-              <ShoppingCart className="w-4 h-4" /> Start Counter Sale <ArrowRight className="w-4 h-4" />
-            </button>
-            <button
-              onClick={() => setActiveTab('inventory')}
-              className="w-full sm:w-auto px-5 sm:px-6 py-3 sm:py-3.5 rounded-2xl bg-[#f5eee3] hover:bg-[#ede3d3] text-[#1c1917] font-bold text-xs sm:text-sm border border-[#e4d8c5] transition-all flex items-center justify-center gap-2 cursor-pointer"
-            >
-              <Boxes className="w-4 h-4 text-[#78716c]" /> View All Stock ({formatNumber(stats.totalUnitsInStock)} pcs)
-            </button>
-          </div>
         </div>
 
-        {/* Right Column: Live Store Activity Widget (Clean product UI widget) */}
-        <div className="lg:col-span-5 bg-[#f5eee3] rounded-3xl p-5 sm:p-7 border border-[#e4d8c5] shadow-xs flex flex-col justify-between space-y-4">
-          <div className="flex items-center justify-between border-b border-[#e4d8c5] pb-3">
-            <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-[#1c1917]">
-              <Activity className="w-4 h-4 text-[#d96528]" />
-              Store Live Overview
-            </div>
-            <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-[#eef5ee] text-[#2d6a3f] border border-[#d2e4d3] flex items-center gap-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#2d6a3f]" /> Active
-            </span>
-          </div>
-
-          <div className="space-y-2 text-xs">
-            <div className="flex items-center justify-between bg-white p-2.5 sm:p-3 rounded-2xl border border-[#e8dfd1] shadow-2xs">
-              <span className="font-semibold text-[#44403c]">Total Available Stock</span>
-              <span className="font-black text-[#1c1917] bg-[#f5eee3] px-2 py-0.5 rounded-md">
-                {formatNumber(stats.totalUnitsInStock)} pcs
-              </span>
-            </div>
-
-            <div className="flex items-center justify-between bg-white p-2.5 sm:p-3 rounded-2xl border border-[#e8dfd1] shadow-2xs">
-              <span className="font-semibold text-[#44403c]">Today's Counter Revenue</span>
-              <span className="font-black text-[#2d6a3f] bg-[#eef5ee] px-2 py-0.5 rounded-md">
-                {formatCurrency(stats.todaysRevenue)}
-              </span>
-            </div>
-
-            <div className="flex items-center justify-between bg-white p-2.5 sm:p-3 rounded-2xl border border-[#e8dfd1] shadow-2xs">
-              <span className="font-semibold text-[#44403c]">Active Product Lines</span>
-              <span className="font-black text-[#1c1917] bg-[#f5eee3] px-2 py-0.5 rounded-md">
-                {stats.totalUniqueProducts} lines
-              </span>
-            </div>
-
-            <div className="flex items-center justify-between bg-white p-2.5 sm:p-3 rounded-2xl border border-[#e8dfd1] shadow-2xs">
-              <span className="font-semibold text-[#44403c]">Items Requiring Reorder</span>
-              <span className="font-black text-[#b45309] bg-[#fcf3e6] px-2 py-0.5 rounded-md">
-                {stats.outOfStockCount + stats.lowStockCount} items
-              </span>
-            </div>
-          </div>
-
-          <div className="pt-2 text-[10px] sm:text-[11px] text-[#78716c] flex items-center justify-between">
-            <span>Inventory Valuation (Cost Basis)</span>
-            <span className="font-black text-[#1c1917]">{formatCurrency(stats.totalInventoryValuation)}</span>
-          </div>
+        <div className="relative">
+          <Search className="w-5 h-5 text-[#8c827a] absolute left-4 top-3.5" />
+          <input
+            type="text"
+            placeholder="Type any saree, shirt, dhoti, color, or rack name to find stock immediately..."
+            value={instantSearch}
+            onChange={(e) => setInstantSearch(e.target.value)}
+            className="w-full pl-12 pr-4 py-3 bg-[#fbf8f2] border border-[#e0d3c1] rounded-2xl text-sm sm:text-base text-[#1c1917] font-medium focus:outline-hidden focus:ring-2 focus:ring-[#d96528]"
+          />
         </div>
+
+        {/* Instant Search Results Dropdown */}
+        <AnimatePresence>
+          {searchResults.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: -5 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -5 }}
+              className="bg-[#fbf8f2] rounded-2xl p-3 border border-[#e8dfd1] space-y-2"
+            >
+              <div className="text-[11px] font-bold text-[#8c827a] uppercase px-1">
+                Instant Stock Lookup Results:
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {searchResults.map((item) => {
+                  const status = getStockStatus(item);
+                  return (
+                    <div
+                      key={item.id}
+                      onClick={() => handleSearchResultClick(item.name)}
+                      className="p-3 bg-white rounded-xl border border-[#e8dfd1] hover:border-[#d96528] cursor-pointer flex items-center justify-between transition-all"
+                    >
+                      <div>
+                        <div className="font-bold text-xs sm:text-sm text-[#1c1917]">{item.name}</div>
+                        <div className="text-[11px] text-[#78716c] flex items-center gap-1 mt-0.5">
+                          <MapPin className="w-3 h-3 text-[#d96528]" />
+                          <span>{item.rackLocation}</span>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <span className={`text-xs font-black px-2 py-0.5 rounded-full border ${status.badgeClass}`}>
+                          {item.currentStock} pcs
+                        </span>
+                        <div className="text-[10px] text-[#8c827a] font-semibold mt-0.5">
+                          {formatCurrency(item.sellingPrice)}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
-      {/* 4 PRIMARY TOUCH ACTION CARDS */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4">
-        {primaryActions.map((action, idx) => (
-          <motion.div
-            key={action.id}
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.2, delay: idx * 0.04 }}
-            whileHover={{ y: -2 }}
-            whileTap={{ scale: 0.98 }}
-            onClick={() => setActiveTab(action.id)}
-            className="group cursor-pointer bg-white rounded-3xl p-4 sm:p-5 border-2 border-[#e8dfd1] hover:border-[#d96528] shadow-xs hover:shadow-md transition-all duration-200 flex flex-col justify-between min-h-[170px] sm:min-h-[190px]"
-          >
-            <div>
-              <div className="flex items-center justify-between">
-                <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-[#f5eee3] flex items-center justify-center border border-[#e4d8c5]">
-                  {action.icon}
-                </div>
-                <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full border ${action.badgeClass}`}>
-                  {action.badge}
-                </span>
-              </div>
-
-              <h3 className="text-sm sm:text-base font-black text-[#1c1917] mt-3 group-hover:text-[#d96528] transition-colors">
-                {action.title}
-              </h3>
-              <p className="text-[11px] sm:text-xs text-[#78716c] mt-0.5 leading-snug">{action.subtitle}</p>
-            </div>
-
-            <div className="mt-3 sm:mt-4 pt-3 border-t border-[#f0e6d8] flex items-end justify-between">
+      {/* 2. THE 4 BIG PRIMARY ACTION CARDS */}
+      <div>
+        <div className="text-xs font-black uppercase tracking-wider text-[#8c827a] mb-3 px-1">
+          Quick Actions
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {primaryActions.map((action, idx) => (
+            <motion.div
+              key={action.id}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.2, delay: idx * 0.04 }}
+              whileHover={{ y: -2 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => setActiveTab(action.id)}
+              className={`group cursor-pointer bg-white rounded-3xl p-5 border-2 ${action.borderColor} shadow-xs hover:shadow-md transition-all duration-200 flex flex-col justify-between min-h-[170px]`}
+            >
               <div>
-                <div className="text-lg sm:text-xl font-black text-[#1c1917]">{action.metric}</div>
-                <div className="text-[10px] font-bold text-[#8c827a]">{action.metricLabel}</div>
+                <div className="flex items-center justify-between">
+                  <div className={`w-12 h-12 rounded-2xl ${action.accentBg} flex items-center justify-center`}>
+                    {action.icon}
+                  </div>
+                  <div className="text-right">
+                    <div className="text-lg sm:text-xl font-black text-[#1c1917]">{action.metric}</div>
+                    <div className="text-[10px] font-bold text-[#8c827a]">{action.metricLabel}</div>
+                  </div>
+                </div>
+
+                <h3 className="text-base sm:text-lg font-black text-[#1c1917] mt-4 group-hover:text-[#d96528] transition-colors">
+                  {action.title}
+                </h3>
+                <p className="text-xs text-[#78716c] mt-0.5">{action.tagline}</p>
               </div>
-              <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-xl bg-[#f5eee3] group-hover:bg-[#d96528] group-hover:text-white text-[#57534e] flex items-center justify-center transition-colors">
-                <ArrowRight className="w-3.5 h-3.5" />
+
+              <div className="mt-4 pt-3 border-t border-[#f0e6d8] flex items-center justify-between text-xs font-bold text-[#57534e] group-hover:text-[#d96528]">
+                <span>Open {action.title}</span>
+                <div className="w-6 h-6 rounded-lg bg-[#f5eee3] group-hover:bg-[#d96528] group-hover:text-white flex items-center justify-center transition-colors">
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </div>
               </div>
-            </div>
-          </motion.div>
-        ))}
+            </motion.div>
+          ))}
+        </div>
       </div>
 
-      {/* 3 Store Health Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5 sm:gap-4">
-        <div
-          onClick={() => setActiveTab('analytics')}
-          className="cursor-pointer bg-white rounded-3xl p-4 sm:p-5 border border-[#e8dfd1] hover:border-[#704282] shadow-xs transition-all group"
-        >
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-[#704282] bg-[#f5eef9] px-2.5 py-1 rounded-full border border-[#e7daf0] flex items-center gap-1.5">
-              <Lock className="w-3.5 h-3.5" /> Capital Trapped
+      {/* 3. SIMPLE STORE NUMBERS AT A GLANCE */}
+      <div>
+        <div className="text-xs font-black uppercase tracking-wider text-[#8c827a] mb-3 px-1">
+          Today's Store Snapshot
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3.5 sm:gap-4">
+          {/* Card 1: Total Stock */}
+          <div
+            onClick={() => setActiveTab('inventory')}
+            className="cursor-pointer bg-white rounded-3xl p-4 sm:p-5 border border-[#e8dfd1] hover:border-[#d96528] shadow-xs transition-all"
+          >
+            <span className="text-[11px] font-bold text-[#8c827a] uppercase block">Total Available Clothes</span>
+            <div className="text-xl sm:text-2xl font-black text-[#1c1917] mt-1">
+              {formatNumber(stats.totalUnitsInStock)}{' '}
+              <span className="text-xs font-normal text-[#78716c]">pieces</span>
+            </div>
+            <span className="text-[11px] text-[#2d6a3f] font-bold mt-1 block">
+              Across {stats.totalUniqueProducts} varieties
             </span>
-            <ArrowRight className="w-4 h-4 text-[#8c827a] group-hover:text-[#704282] transition-colors" />
           </div>
-          <div className="mt-3 sm:mt-4">
-            <div className="text-xl sm:text-2xl font-black text-[#1c1917]">
+
+          {/* Card 2: Today's Revenue */}
+          <div
+            onClick={() => setActiveTab('sales')}
+            className="cursor-pointer bg-white rounded-3xl p-4 sm:p-5 border border-[#e8dfd1] hover:border-[#2d6a3f] shadow-xs transition-all"
+          >
+            <span className="text-[11px] font-bold text-[#8c827a] uppercase block">Today's Total Sales</span>
+            <div className="text-xl sm:text-2xl font-black text-[#2d6a3f] mt-1">
+              {formatCurrency(stats.todaysRevenue)}
+            </div>
+            <span className="text-[11px] text-[#78716c] font-semibold mt-1 block">
+              {stats.todaysSalesCount} pieces sold today
+            </span>
+          </div>
+
+          {/* Card 3: Items to Reorder */}
+          <div
+            onClick={() => setActiveTab('low-stock')}
+            className="cursor-pointer bg-white rounded-3xl p-4 sm:p-5 border border-[#e8dfd1] hover:border-[#b9381e] shadow-xs transition-all"
+          >
+            <span className="text-[11px] font-bold text-[#8c827a] uppercase block">Items Running Low</span>
+            <div className="text-xl sm:text-2xl font-black text-[#b9381e] mt-1">
+              {stats.outOfStockCount + stats.lowStockCount}{' '}
+              <span className="text-xs font-normal text-[#78716c]">items</span>
+            </div>
+            <span className="text-[11px] text-[#b9381e] font-bold mt-1 block">
+              {stats.outOfStockCount > 0 ? `⚠️ ${stats.outOfStockCount} completely empty` : 'Need restock'}
+            </span>
+          </div>
+
+          {/* Card 4: Money in Slow Stock */}
+          <div
+            onClick={() => setActiveTab('analytics')}
+            className="cursor-pointer bg-white rounded-3xl p-4 sm:p-5 border border-[#e8dfd1] hover:border-[#704282] shadow-xs transition-all"
+          >
+            <span className="text-[11px] font-bold text-[#8c827a] uppercase block">Money in Slow Items</span>
+            <div className="text-xl sm:text-2xl font-black text-[#704282] mt-1">
               {formatCurrency(stats.deadStockCapital)}
             </div>
-            <p className="text-xs text-[#78716c] mt-0.5">
-              {slowMovingProducts.length} slow-moving textile lines sitting on upper shelves.
-            </p>
-          </div>
-        </div>
-
-        <div
-          onClick={() => setActiveTab('inventory')}
-          className="cursor-pointer bg-white rounded-3xl p-4 sm:p-5 border border-[#e8dfd1] hover:border-[#d96528] shadow-xs transition-all group"
-        >
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-[#c45418] bg-[#faeedf] px-2.5 py-1 rounded-full border border-[#eed6c0] flex items-center gap-1.5">
-              <Boxes className="w-3.5 h-3.5" /> Total Stock Valuation
+            <span className="text-[11px] text-[#704282] font-bold mt-1 block">
+              {slowMovingProducts.length} items sitting on shelves
             </span>
-            <ArrowRight className="w-4 h-4 text-[#8c827a] group-hover:text-[#d96528] transition-colors" />
-          </div>
-          <div className="mt-3 sm:mt-4">
-            <div className="text-xl sm:text-2xl font-black text-[#1c1917]">
-              {formatCurrency(stats.totalInventoryValuation)}
-            </div>
-            <p className="text-xs text-[#78716c] mt-0.5">
-              Retail value: <strong>{formatCurrency(stats.totalRetailValuation)}</strong>
-            </p>
-          </div>
-        </div>
-
-        <div
-          onClick={() => setActiveTab('low-stock')}
-          className="cursor-pointer bg-white rounded-3xl p-4 sm:p-5 border border-[#e8dfd1] hover:border-[#2d6a3f] shadow-xs transition-all group"
-        >
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-[#2d6a3f] bg-[#eef5ee] px-2.5 py-1 rounded-full border border-[#d2e4d3] flex items-center gap-1.5">
-              <CheckCircle2 className="w-3.5 h-3.5" /> In-Stock Health
-            </span>
-            <ArrowRight className="w-4 h-4 text-[#8c827a] group-hover:text-[#2d6a3f] transition-colors" />
-          </div>
-          <div className="mt-3 sm:mt-4">
-            <div className="text-xl sm:text-2xl font-black text-[#1c1917]">
-              {stats.healthyStockCount} of {stats.totalUniqueProducts} Healthy
-            </div>
-            <p className="text-xs text-[#78716c] mt-0.5">
-              {stats.outOfStockCount > 0 ? `⚠️ ${stats.outOfStockCount} items sold out!` : 'Zero stockout emergencies.'}
-            </p>
           </div>
         </div>
       </div>

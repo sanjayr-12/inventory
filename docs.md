@@ -1,11 +1,11 @@
-# Lakshmi Textiles — Smart Inventory & POS System
-## Presentation Documentation & 2-Contributor Modular Architecture Plan
+# Laxmi Textiles — Smart Inventory & POS System
+## Architecture & 2-Contributor Modular Plan
 
 ---
 
 ### 1. Executive Summary & Problem Context
 
-**Lakshmi Textiles** has expanded from a local textile shop into a bustling regional destination with customers traveling 30–40 km from neighboring villages. However, inventory tracking remained manual (notebooks, memory, physical shelf hunting), causing four critical business problems:
+**Laxmi Textiles** has expanded from a local textile shop into a bustling regional destination with customers traveling 30–40 km from neighboring villages. However, inventory tracking remained manual (notebooks, memory, physical shelf hunting), causing four critical business problems:
 1. **Unreliable Stock Counts**: Staff cannot immediately confirm if a particular blue cotton saree or silk dhoti is in stock.
 2. **Lost Sales & Damaged Goodwill**: Customers traveling long distances are turned away because items thought to be available were already sold.
 3. **Trapped Working Capital in Dead Stock**: Money gets locked in slow-moving or overstocked items sitting on high shelves for months.
@@ -46,9 +46,9 @@ To ensure two developers (or two autonomous AI agents) can build, extend, and ma
 
 | Module | Features & Responsibilities | Deliverables |
 | :--- | :--- | :--- |
-| **Hero Quick Actions** (`src/modules/quick-actions/`) | • Large touch-first 4 action cards (`➕ STOCK IN`, `🛒 SALE`, `📦 STOCK`, `⚠️ LOW STOCK`)<br>• Executive 4-questions snapshot<br>• Smooth hover & micro-interaction animations | `HeroQuickActions.tsx` |
+| **Hero Quick Actions** (`src/modules/quick-actions/`) | • Large touch-first 4 action cards (`STOCK IN`, `SALE / POS`, `WHAT'S IN SHOP?`, `LOW STOCK ALERTS`)<br>• Live Store Overview snapshot widget<br>• Smooth hover & micro-interaction animations | `HeroQuickActions.tsx` |
 | **Stock In Entry** (`src/modules/stock-in/`) | • Restock existing catalog item OR register new textile line<br>• Input pieces received, buying cost, selling MRP, supplier, shelf/rack<br>• Real-time before/after stock impact preview<br>• Recent delivery challan history | `StockInModule.tsx` |
-| **Sales & POS Billing** (`src/modules/sales/`) | • Fast catalog search (SKU, color, fabric, rack location)<br>• 1-tap "Add to Bill" with stock ceiling guard (prevents negative stock)<br>• Multiple payment methods (`UPI`, `CASH`, `CARD`)<br>• Instant automatic stock deduction<br>• Animated receipt card + confetti celebration | `SalesModule.tsx` |
+| **Sales & POS Billing** (`src/modules/sales/`) | • Fast catalog search (SKU, color, fabric, rack location)<br>• 1-tap "Add to Bill" with stock ceiling guard (prevents negative stock)<br>• Multiple payment methods (`UPI`, `CASH`, `CARD`)<br>• Instant automatic stock reduction<br>• Animated receipt card + confetti celebration | `SalesModule.tsx` |
 
 ---
 
@@ -91,30 +91,23 @@ export interface Product {
 ```
 
 #### Storage & Persistence
-- **Storage Layer**: Managed by `StorageService` in `src/lib/storage.ts` using browser `localStorage` (`lakshmi_inventory_*`).
+- **Storage Layer**: Managed by `StorageService` in `src/lib/storage.ts` using browser `localStorage` (`laxmi_inventory_*`).
 - **Initial Demo Seed**: Includes realistic items (Royal Blue Cotton Saree, Kanchipuram Crimson Gold Silk, Tirupur Shirts, Madurai Sungudi, Double Dhoti, Erode Uniforms).
-- **Reset Trigger**: "Reset Demo Data" button reloads standard presentation dataset at any time.
+- **Reset Trigger**: "Reset Data" button reloads standard dataset at any time.
 
 ---
 
-### 5. Step-by-Step Presentation Script for Demo Day
+### 5. Step-by-Step Walkthrough Guide
 
-Follow this 3-minute presentation walkthrough when pitching the software:
-
-1. **The Problem (Hook)**:
-   - *"A customer travels 35km from a village to Lakshmi Textiles for a specific blue cotton saree. The owner thinks they have it, but after 15 minutes of searching shelves, they realize it was sold yesterday. The customer leaves empty-handed."*
-2. **Step 1 — Stock In (`➕ STOCK IN`)**:
-   - Show receiving 50 pieces of Cotton Saree from Coimbatore Cotton Mills at Rack A-2.
-   - Show how the system immediately logs cost, supplier, and exact shelf location.
-3. **Step 2 — Counter Sale (`🛒 SALE`)**:
-   - Add 2 Blue Cotton Sarees to the POS bill.
-   - Click "Complete Sale".
-   - Highlight: *"Before sale: 15 pieces → After sale: 13 pieces. Zero manual calculation needed."*
-4. **Step 3 — Instant Look-up (`📦 WHAT'S IN SHOP?`)**:
-   - Open inventory view and search "blue cotton".
-   - Instantly show: 13 pieces available at **Rack A-2**.
-5. **Step 4 — Low Stock & WhatsApp Reorder (`⚠️ LOW STOCK`)**:
-   - Show Kanchipuram Silk Sarees running low (3 pcs left) and Dhoti out of stock (0 pcs).
-   - Click "WhatsApp Order" to show the pre-drafted supplier purchase order ready to send.
-6. **Step 5 — Capital Optimization (`📊 DEAD STOCK`)**:
-   - Show ₹72,450 trapped in slow-moving Banarasi sarees and kurtas, showing the owner exactly how to free up cash.
+1. **The Core Objective**:
+   - Give Laxmi Textiles store staff and owner 100% visibility over current stock and counter sales without paper notebooks.
+2. **Inward Stock Entry (`STOCK IN`)**:
+   - Receive incoming shipments from weavers (e.g. Coimbatore Mills, Kanchipuram Master Weavers) with cost price and shelf location.
+3. **Counter Sale (`SALE / POS`)**:
+   - Bill customer purchases with instant stock deduction.
+4. **Live Stock Lookup (`WHAT'S IN SHOP?`)**:
+   - Search by SKU, fabric, or rack to find item counts immediately.
+5. **Low Stock Alerts (`LOW STOCK ALERTS`)**:
+   - Restock fast-selling items or send WhatsApp orders directly to suppliers.
+6. **Capital Optimization (`DEAD STOCK & INSIGHTS`)**:
+   - Monitor working capital locked in slow-moving inventory.
