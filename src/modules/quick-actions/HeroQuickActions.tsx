@@ -72,7 +72,7 @@ export const HeroQuickActions: React.FC = () => {
           <div className="space-y-3 sm:space-y-4">
             <div className="inline-flex items-center gap-1.5 sm:gap-2 px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-full bg-[#faeedf] border border-[#eed6c0] text-[#c45418] text-[11px] sm:text-xs font-bold">
               <Flame className="w-3.5 h-3.5 text-[#d96528] shrink-0" />
-              <span>Real-Time Inventory & POS for Lakshmi Textiles</span>
+              <span>Real-Time Inventory & POS for Laxmi Textiles</span>
             </div>
 
             <h1 className="text-2xl sm:text-4xl lg:text-5xl font-black text-[#1c1917] tracking-tight leading-tight sm:leading-[1.15]">

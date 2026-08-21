@@ -1,8 +1,8 @@
 <!-- BEGIN:nextjs-agent-rules -->
-# Lakshmi Textiles Inventory & POS System — Architecture & Agent Guidelines
+# Laxmi Textiles Inventory & POS System — Architecture & Agent Guidelines
 
 ## 1. Project Overview & Mission
-This application is a simple, visual, real-time inventory management and counter sales (POS) system built for **Lakshmi Textiles**. The objective is to give the store owner 100% visibility over what came in, what was sold, what is left on shelves, and what needs to be reordered without manual calculations or notebooks.
+This application is a simple, visual, real-time inventory management and counter sales (POS) system built for **Laxmi Textiles**. The objective is to give the store owner 100% visibility over what came in, what was sold, what is left on shelves, and what needs to be reordered without manual calculations or notebooks.
 
 ---
 

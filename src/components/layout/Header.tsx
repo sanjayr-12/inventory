@@ -76,7 +76,7 @@ export const Header: React.FC = () => {
             <div className="min-w-0">
               <div className="flex items-center gap-1.5 sm:gap-2">
                 <h1 className="text-base sm:text-lg font-black tracking-tight text-[#1c1917] truncate">
-                  LAKSHMI <span className="text-[#d96528]">TEXTILES</span>
+                  LAXMI <span className="text-[#d96528]">TEXTILES</span>
                 </h1>
                 <span className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-bold rounded-full bg-[#faeedf] text-[#c45418] border border-[#eed6c0] shrink-0">
                   <Sparkles className="w-2.5 h-2.5" /> Live Stock

@@ -1,6 +1,6 @@
-# 🛍️ Lakshmi Textiles — Real-Time Inventory & POS System
+# 🛍️ Laxmi Textiles — Real-Time Inventory & POS System
 
-A fast, responsive, and easy-to-use textile inventory management and counter billing application tailored for **Lakshmi Textiles**.
+A fast, responsive, and easy-to-use textile inventory management and counter billing application tailored for **Laxmi Textiles**.
 
 Built with **Next.js 16 (Turbopack)**, **React 19**, **Tailwind CSS v4**, **Framer Motion**, and **Lucide Icons**.
 
@@ -24,9 +24,9 @@ Built with **Next.js 16 (Turbopack)**, **React 19**, **Tailwind CSS v4**, **Fram
 5. **📊 Fast vs. Slow-Moving Insights & Dead Stock** (`src/modules/analytics/`):
    - Calculates working capital trapped in unsold items (`₹` amount).
    - Identifies high-velocity cash drivers vs dead stock needing clearance.
-6. **🔄 Presentation Demo Dataset**:
+6. **🔄 Demo Dataset**:
    - Pre-loaded with realistic regional textile inventory data.
-   - 1-Click "Reset Demo Data" button in header for clean presentation rehearsals.
+   - 1-Click "Reset Data" button in header for clean test data resets.
 
 ---
 
@@ -81,5 +81,5 @@ The project is structured with strict **modular isolation** to prevent git merge
 - **Contributor 2**: Works in `src/modules/inventory-view/`, `src/modules/low-stock/`, and `src/modules/analytics/`.
 
 Refer to:
-- 📖 [docs.md](file:///mnt/sda3/Test-Stuff/hcl/inventory/docs.md) for the complete presentation narrative and feature specifications.
+- 📖 [docs.md](file:///mnt/sda3/Test-Stuff/hcl/inventory/docs.md) for module specifications and API schemas.
 - 🤖 [AGENTS.md](file:///mnt/sda3/Test-Stuff/hcl/inventory/AGENTS.md) for code conventions and folder boundaries.

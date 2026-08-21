@@ -39,7 +39,7 @@ export const LowStockModule: React.FC = () => {
 
   const generateWhatsAppMessage = (product: Product, qty: number) => {
     const text = encodeURIComponent(
-      `Hello ${product.supplier},\n\nLakshmi Textiles urgent purchase order:\n• Product: ${product.name} (${product.sku})\n• Quantity: ${qty} pieces\n• Destination: Lakshmi Textiles Store\n\nPlease confirm dispatch date and billing details. Thank you!`
+      `Hello ${product.supplier},\n\nLaxmi Textiles urgent purchase order:\n• Product: ${product.name} (${product.sku})\n• Quantity: ${qty} pieces\n• Destination: Laxmi Textiles Store\n\nPlease confirm dispatch date and billing details. Thank you!`
     );
     window.open(`https://wa.me/?text=${text}`, '_blank');
     toast.success(`Generated purchase draft for ${product.supplier}`);

@@ -208,7 +208,7 @@ export function InventoryProvider({ children }: { children: React.ReactNode }) {
         totalAmount: payload.quantity * payload.costPrice,
         date: now,
         referenceNotes: payload.notes || `Received from ${payload.supplier}`,
-        handledBy: payload.handledBy || 'Lakshmi Store Staff',
+        handledBy: payload.handledBy || 'Laxmi Store Staff',
       };
 
       updateProductsState(updatedProducts);
@@ -295,7 +295,7 @@ export function InventoryProvider({ children }: { children: React.ReactNode }) {
           totalAmount: itemTotal,
           date: now,
           referenceNotes: `Counter Sale (${paymentMethod})`,
-          handledBy: 'Lakshmi Billing Counter',
+          handledBy: 'Laxmi Billing Counter',
         });
       }
 

@@ -101,7 +101,7 @@ function DashboardContent() {
         <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
           <div className="flex items-center gap-2">
             <Logo size={22} className="shrink-0 rounded-md" />
-            <span className="font-bold text-[#1c1917]">Lakshmi Textiles</span>
+            <span className="font-bold text-[#1c1917]">Laxmi Textiles</span>
             <span className="text-[#8c827a] hidden sm:inline">• Inventory & POS System</span>
           </div>
 

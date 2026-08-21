@@ -1,8 +1,8 @@
 import { Product, StockMovement, SaleTransaction, InventoryStats } from '@/src/types';
 
-const PRODUCTS_KEY = 'lakshmi_inventory_products_v1';
-const MOVEMENTS_KEY = 'lakshmi_inventory_movements_v1';
-const TRANSACTIONS_KEY = 'lakshmi_inventory_transactions_v1';
+const PRODUCTS_KEY = 'laxmi_inventory_products_v1';
+const MOVEMENTS_KEY = 'laxmi_inventory_movements_v1';
+const TRANSACTIONS_KEY = 'laxmi_inventory_transactions_v1';
 
 export const INITIAL_PRODUCTS: Product[] = [
   {
@@ -244,7 +244,7 @@ export const INITIAL_MOVEMENTS: StockMovement[] = [
     totalAmount: 1598,
     date: '2026-08-21T14:20:00.000Z',
     referenceNotes: 'Counter Bill #LT-1049',
-    handledBy: 'Lakshmi Owner',
+    handledBy: 'Laxmi Owner',
   },
   {
     id: 'mov-3',
@@ -258,7 +258,7 @@ export const INITIAL_MOVEMENTS: StockMovement[] = [
     totalAmount: 7999,
     date: '2026-08-21T11:45:00.000Z',
     referenceNotes: 'Customer from Tiruchengode (Wedding Purchase)',
-    handledBy: 'Lakshmi Owner',
+    handledBy: 'Laxmi Owner',
   },
   {
     id: 'mov-4',

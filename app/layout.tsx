@@ -9,8 +9,8 @@ const jakarta = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
-  title: 'Lakshmi Textiles — Simple Real-Time Inventory & POS System',
-  description: 'Visual inventory and counter checkout system built for Lakshmi Textiles.',
+  title: 'Laxmi Textiles — Simple Real-Time Inventory & POS System',
+  description: 'Visual inventory and counter checkout system built for Laxmi Textiles.',
   icons: {
     icon: '/logo.svg',
     shortcut: '/logo.svg',
