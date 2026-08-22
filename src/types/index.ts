@@ -17,22 +17,22 @@ export interface Product {
   name: string;
   category: Category;
   color?: string;
-  sizeOrLength?: string; // e.g. "6.2m", "L", "38", "Free Size"
-  fabric?: string; // e.g. "Pure Silk", "Pure Cotton", "Linen", "Chiffon"
+  sizeOrLength?: string;
+  fabric?: string;
   
   currentStock: number;
-  lowStockThreshold: number; // usually 5-10 for sarees, 15 for uniforms
+  lowStockThreshold: number;
   
   costPrice: number; // Buying price in INR (₹)
   sellingPrice: number; // Retail selling price in INR (₹)
   
-  supplier: string; // e.g. "Kanchipuram Master Weavers", "Surat Silk Mills", "Coimbatore Cotton Mills"
-  rackLocation: string; // e.g. "Rack A-1 (Silk Section)", "Rack C-3 (Uniforms)", "Shelf B2"
+  supplier: string;
+  rackLocation: string;
   
   totalUnitsReceived: number;
   totalUnitsSold: number;
   
-  lastRestockedDate: string; // ISO date string
+  lastRestockedDate: string;
   lastSoldDate?: string;
   createdAt: string;
   
@@ -45,14 +45,14 @@ export interface StockMovement {
   productId: string;
   productName: string;
   type: MovementType;
-  quantity: number; // positive number
+  quantity: number;
   previousStock: number;
   newStock: number;
-  unitPrice: number; // Cost price for STOCK_IN, Selling price for SALE
+  unitPrice: number;
   totalAmount: number;
-  date: string; // ISO date string
-  referenceNotes?: string; // Supplier name, customer token, invoice number, or reason
-  handledBy?: string; // Staff member name
+  date: string;
+  referenceNotes?: string;
+  handledBy?: string;
 }
 
 export interface SaleItem {
@@ -74,11 +74,89 @@ export interface SaleTransaction {
   date: string;
 }
 
+export interface GeoLocation {
+  lat: number;
+  lng: number;
+  name: string;
+  address: string;
+}
+
+export interface VendorItem {
+  id: string;
+  name: string;
+  category: Category;
+  fabric: string;
+  color: string;
+  unitPrice: number;
+  retailEstimate: number;
+  minimumOrderQty: number;
+  inStockAtMill: number;
+  description: string;
+  defaultRack: string;
+}
+
+export interface Vendor {
+  id: string;
+  name: string;
+  city: string;
+  state: string;
+  specialty: string;
+  rating: number;
+  phone: string;
+  coordinates: { lat: number; lng: number };
+  catalog: VendorItem[];
+}
+
+export interface PurchaseOrderItem {
+  vendorItemId: string;
+  name: string;
+  category: Category;
+  fabric: string;
+  color: string;
+  quantity: number;
+  unitPrice: number;
+  retailEstimate: number;
+  total: number;
+  targetRack: string;
+}
+
+export type DeliveryStatus = 'ORDER_PLACED' | 'IN_TRANSIT' | 'DELIVERED' | 'STOCKED';
+
+export interface ReturnRequest {
+  quantity: number;
+  reason: string;
+  requestedAt: number; // timestamp in ms
+  status: 'REQUESTED' | 'PICKUP_DISPATCHED' | 'RETURN_IN_TRANSIT' | 'RETURN_COMPLETED';
+  truckNumber: string;
+  driverName: string;
+  driverPhone: string;
+  completedAt?: string;
+}
+
+export interface PurchaseOrder {
+  id: string;
+  trackingHash: string;
+  vendorId: string;
+  vendorName: string;
+  vendorCity: string;
+  vendorCoordinates: { lat: number; lng: number };
+  items: PurchaseOrderItem[];
+  totalAmount: number;
+  totalItems: number;
+  createdAt: number; // timestamp in milliseconds
+  status: DeliveryStatus;
+  truckNumber: string;
+  driverName: string;
+  driverPhone: string;
+  stockInCompletedAt?: string;
+  returnRequest?: ReturnRequest;
+}
+
 export interface InventoryStats {
   totalUniqueProducts: number;
   totalUnitsInStock: number;
-  totalInventoryValuation: number; // at cost price
-  totalRetailValuation: number; // at selling price
+  totalInventoryValuation: number;
+  totalRetailValuation: number;
   potentialProfit: number;
   
   outOfStockCount: number;
@@ -88,8 +166,12 @@ export interface InventoryStats {
   todaysSalesCount: number;
   todaysRevenue: number;
   
-  deadStockCount: number; // items with stock > 0 but slow moving
-  deadStockCapital: number; // money locked in slow/dead items
+  deadStockCount: number;
+  deadStockCapital: number;
+  activeInwardOrdersCount: number;
 }
 
-export type ActiveTab = 'overview' | 'stock-in' | 'sales' | 'inventory' | 'low-stock' | 'analytics';
+export type ActiveTab = 'overview' | 'stock-in' | 'vendor-orders' | 'sales' | 'inventory' | 'low-stock' | 'analytics';
+
+export type Language = 'en' | 'ta' | 'hi';
+export type ThemeMode = 'light' | 'dark';

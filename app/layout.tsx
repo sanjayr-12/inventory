@@ -4,7 +4,8 @@ import './globals.css';
 
 const jakarta = Plus_Jakarta_Sans({
   subsets: ['latin'],
-  variable: '--font-sans',
+  weight: ['400', '500', '600', '700', '800'],
+  variable: '--font-jakarta',
   display: 'swap',
 });
 
@@ -20,11 +21,11 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${jakarta.variable} h-full antialiased`}>
+    <html lang="en" className={`${jakarta.variable} ${jakarta.className} h-full antialiased`} suppressHydrationWarning>
       <head>
         <link rel="icon" href="/logo.svg" type="image/svg+xml" />
       </head>
-      <body className="min-h-full flex flex-col font-sans bg-[#fbf8f2] text-[#1c1917] antialiased">
+      <body className={`${jakarta.className} min-h-full flex flex-col bg-[#fbf8f2] dark:bg-[#181512] text-[#1c1917] dark:text-[#fbf8f2] antialiased transition-colors`}>
         {children}
       </body>
     </html>

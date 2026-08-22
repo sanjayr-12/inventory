@@ -26,7 +26,7 @@ interface CartItem {
 }
 
 export const SalesModule: React.FC = () => {
-  const { products, recordSale } = useInventory();
+  const { products, recordSale, t } = useInventory();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCat, setSelectedCat] = useState<string>('All');
@@ -54,6 +54,7 @@ export const SalesModule: React.FC = () => {
       const existing = prev.find((item) => item.product.id === product.id);
       if (existing) {
         if (existing.quantity >= product.currentStock) {
+          alert(`Cannot add more than ${product.currentStock} pieces in stock.`);
           return prev;
         }
         return prev.map((item) =>
@@ -65,31 +66,31 @@ export const SalesModule: React.FC = () => {
   };
 
   const updateQuantity = (productId: string, delta: number) => {
-    setCart((prev) =>
-      prev
+    setCart((prev) => {
+      return prev
         .map((item) => {
           if (item.product.id === productId) {
-            const nextQty = item.quantity + delta;
-            if (nextQty <= 0) return null;
-            if (nextQty > item.product.currentStock) return item;
-            return { ...item, quantity: nextQty };
+            const newQty = item.quantity + delta;
+            if (newQty > item.product.currentStock) {
+              alert(`Only ${item.product.currentStock} pieces available in stock.`);
+              return item;
+            }
+            return newQty > 0 ? { ...item, quantity: newQty } : null;
           }
           return item;
         })
-        .filter(Boolean) as CartItem[]
-    );
+        .filter(Boolean) as CartItem[];
+    });
   };
 
   const removeFromCart = (productId: string) => {
     setCart((prev) => prev.filter((item) => item.product.id !== productId));
   };
 
-  const clearCart = () => {
-    setCart([]);
-  };
+  const clearCart = () => setCart([]);
 
   const totalAmount = cart.reduce((sum, item) => sum + item.product.sellingPrice * item.quantity, 0);
-  const totalItemsCount = cart.reduce((sum, item) => sum + item.quantity, 0);
+  const totalPieces = cart.reduce((sum, item) => sum + item.quantity, 0);
 
   const handleCheckout = () => {
     if (cart.length === 0) return;
@@ -99,7 +100,7 @@ export const SalesModule: React.FC = () => {
       quantity: item.quantity,
     }));
 
-    const result = recordSale(payload, paymentMethod, customerName);
+    const result = recordSale(payload, paymentMethod, customerName.trim() || undefined);
 
     if (result.success && result.transaction) {
       setCompletedTxn(result.transaction);
@@ -109,53 +110,53 @@ export const SalesModule: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6 sm:space-y-8">
-      {/* 1. TOP HEADER */}
-      <div className="bg-[#f5eee3] p-5 sm:p-6 rounded-3xl border border-[#e4d8c5] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div className="space-y-6">
+      {/* 1. TOP BANNER */}
+      <div className="bg-[#f5eee3] dark:bg-[#241f1a] p-5 sm:p-6 rounded-3xl border border-[#e4d8c5] dark:border-[#38322b] flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-colors">
         <div>
-          <h2 className="text-xl sm:text-2xl font-black text-[#1c1917]">
-            🛒 Counter Sale & Billing
+          <h2 className="text-xl sm:text-2xl font-black text-[#1c1917] dark:text-[#f5eee3]">
+            {t.counterSaleTitle}
           </h2>
-          <p className="text-xs sm:text-sm text-[#57534e] mt-0.5">
-            Tap items to add to bill. Stock automatically reduces immediately upon sale.
+          <p className="text-xs sm:text-sm text-[#57534e] dark:text-[#a89f91] mt-0.5">
+            {t.counterSaleSub}
           </p>
         </div>
 
         {cart.length > 0 && (
           <button
             onClick={clearCart}
-            className="text-xs text-[#b9381e] hover:underline font-bold flex items-center gap-1 self-start sm:self-center cursor-pointer"
+            className="px-3.5 py-2 text-xs font-bold text-[#b9381e] hover:bg-[#fdf0ed] dark:hover:bg-[#3d1a15] rounded-xl border border-[#f8d0c8] dark:border-[#52221b] transition-colors cursor-pointer self-start sm:self-center"
           >
-            <Trash2 className="w-3.5 h-3.5" /> Clear Cart ({totalItemsCount} pcs)
+            {t.clearCart}
           </button>
         )}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">
-        {/* Left 7 Columns: Product Selection */}
-        <div className="lg:col-span-7 space-y-4">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        {/* Left Column: Product Selection Grid */}
+        <div className="lg:col-span-7 xl:col-span-8 space-y-4">
           {/* Search & Category Pills */}
-          <div className="space-y-3 bg-white p-4 sm:p-5 rounded-3xl border border-[#e8dfd1] shadow-xs">
+          <div className="space-y-3">
             <div className="relative">
-              <Search className="w-4 h-4 text-[#8c827a] absolute left-3.5 top-3.5" />
               <input
                 type="text"
-                placeholder="Search saree, shirt, color, or rack..."
+                placeholder={t.searchInventory}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2.5 bg-[#fbf8f2] border border-[#e0d3c1] rounded-2xl text-sm sm:text-base text-[#1c1917] font-medium focus:outline-hidden focus:ring-2 focus:ring-[#d96528]"
+                className="w-full px-4 py-3 pl-11 bg-white dark:bg-[#201c18] border border-[#e0d3c1] dark:border-[#38322b] rounded-2xl text-xs sm:text-sm text-[#1c1917] dark:text-[#f5eee3] focus:ring-2 focus:ring-[#d96528] focus:outline-hidden shadow-xs"
               />
+              <Search className="w-4 h-4 text-[#8c827a] dark:text-[#a89f91] absolute left-4 top-3.5" />
             </div>
 
-            <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none pb-1">
+            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
               {categories.map((cat) => (
                 <button
                   key={cat}
                   onClick={() => setSelectedCat(cat)}
-                  className={`px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-colors cursor-pointer ${
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-colors cursor-pointer ${
                     selectedCat === cat
                       ? 'bg-[#d96528] text-white shadow-xs'
-                      : 'bg-[#f5eee3] text-[#57534e] hover:bg-[#ede3d3]'
+                      : 'bg-white dark:bg-[#201c18] border border-[#e8dfd1] dark:border-[#38322b] text-[#57534e] dark:text-[#a89f91] hover:bg-[#f5eee3] dark:hover:bg-[#2c2620]'
                   }`}
                 >
                   {cat}
@@ -164,69 +165,65 @@ export const SalesModule: React.FC = () => {
             </div>
           </div>
 
-          {/* Product Cards Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[560px] overflow-y-auto pr-1">
-            {filteredProducts.map((product) => {
-              const statusInfo = getStockStatus(product);
-              const inCart = cart.find((i) => i.product.id === product.id);
-              const isOutOfStock = product.currentStock <= 0;
+          {/* Products Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
+            {filteredProducts.map((p) => {
+              const status = getStockStatus(p);
+              const isOutOfStock = p.currentStock <= 0;
+              const inCartItem = cart.find((item) => item.product.id === p.id);
 
               return (
                 <div
-                  key={product.id}
-                  onClick={() => !isOutOfStock && addToCart(product)}
-                  className={`p-4 rounded-2xl border transition-all flex flex-col justify-between cursor-pointer ${
+                  key={p.id}
+                  onClick={() => !isOutOfStock && addToCart(p)}
+                  className={`p-4 rounded-3xl border transition-all cursor-pointer flex flex-col justify-between ${
                     isOutOfStock
-                      ? 'bg-[#fbf8f2] border-[#e8dfd1] opacity-60 cursor-not-allowed'
-                      : inCart
-                      ? 'bg-[#faeedf]/40 border-2 border-[#d96528] shadow-xs'
-                      : 'bg-white border-[#e8dfd1] hover:border-[#d96528] shadow-xs'
+                      ? 'bg-[#faf8f5] dark:bg-[#1a1714] border-[#ebdcd0] dark:border-[#2f2923] opacity-60 cursor-not-allowed'
+                      : inCartItem
+                      ? 'bg-white dark:bg-[#201c18] border-2 border-[#2d6a3f] shadow-xs'
+                      : 'bg-white dark:bg-[#201c18] border-[#e8dfd1] dark:border-[#38322b] hover:border-[#d96528] shadow-2xs'
                   }`}
                 >
                   <div>
-                    <div className="flex items-start justify-between gap-2">
-                      <span className="text-[10px] font-bold text-[#8c827a] uppercase tracking-wider">
-                        {product.category}
+                    <div className="flex items-center justify-between gap-1">
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#f5eee3] dark:bg-[#28231e] text-[#57534e] dark:text-[#d6cec2] truncate">
+                        {p.category}
                       </span>
-                      <span
-                        className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${statusInfo.badgeClass}`}
-                      >
-                        {statusInfo.label} ({product.currentStock} in shop)
+                      <span className={`text-[10px] font-black px-2 py-0.5 rounded-full border ${status.badgeClass}`}>
+                        {status.label}
                       </span>
                     </div>
 
-                    <h4 className="text-sm font-black text-[#1c1917] mt-1.5 leading-snug">
-                      {product.name}
+                    <h4 className="font-black text-sm text-[#1c1917] dark:text-[#f5eee3] mt-2 line-clamp-2 leading-snug">
+                      {p.name}
                     </h4>
 
-                    <div className="text-xs text-[#78716c] mt-1 flex items-center gap-1.5">
+                    <div className="text-[11px] text-[#78716c] dark:text-[#a89f91] flex items-center gap-1 mt-1">
                       <MapPin className="w-3 h-3 text-[#d96528]" />
-                      <span>{product.rackLocation}</span>
-                      {product.color && <span>• {product.color}</span>}
+                      <span>{p.rackLocation}</span>
                     </div>
                   </div>
 
-                  <div className="mt-3 pt-3 border-t border-[#f0e6d8] flex items-center justify-between">
-                    <div className="text-base font-black text-[#1c1917]">
-                      {formatCurrency(product.sellingPrice)}
+                  <div className="mt-4 pt-3 border-t border-[#f0e6d8] dark:border-[#38322b] flex items-center justify-between">
+                    <div>
+                      <div className="text-base font-black text-[#1c1917] dark:text-[#f5eee3]">
+                        {formatCurrency(p.sellingPrice)}
+                      </div>
+                      <div className="text-[10px] text-[#78716c] dark:text-[#a89f91]">
+                        {p.currentStock} {t.pieces} in shop
+                      </div>
                     </div>
 
                     {isOutOfStock ? (
-                      <span className="text-xs font-bold text-[#b9381e] px-2.5 py-1 bg-[#fdf0ed] rounded-xl border border-[#f8d0c8]">
-                        Sold Out
+                      <span className="text-xs font-bold text-[#b9381e]">{t.soldOut}</span>
+                    ) : inCartItem ? (
+                      <span className="text-xs font-black px-2.5 py-1 bg-[#2d6a3f] text-white rounded-xl shadow-xs">
+                        +{inCartItem.quantity}
                       </span>
                     ) : (
-                      <button
-                        type="button"
-                        className={`px-3 py-1.5 rounded-xl text-xs font-black transition-all flex items-center gap-1 ${
-                          inCart
-                            ? 'bg-[#d96528] text-white shadow-xs'
-                            : 'bg-[#faeedf] text-[#c45418] border border-[#eed6c0]'
-                        }`}
-                      >
-                        <Plus className="w-3.5 h-3.5" />
-                        {inCart ? `In Bill (${inCart.quantity})` : 'Add to Bill'}
-                      </button>
+                      <span className="text-xs font-bold text-[#d96528] dark:text-[#ea7637] flex items-center gap-1">
+                        <Plus className="w-3.5 h-3.5" /> {t.addToBill}
+                      </span>
                     )}
                   </div>
                 </div>
@@ -235,65 +232,68 @@ export const SalesModule: React.FC = () => {
           </div>
         </div>
 
-        {/* Right 5 Columns: Counter Bill Drawer */}
-        <div className="lg:col-span-5 space-y-4">
-          <div className="bg-[#f5eee3] rounded-3xl border border-[#e4d8c5] p-5 sm:p-6 shadow-xs space-y-4">
-            <div className="flex items-center justify-between border-b border-[#e4d8c5] pb-3">
+        {/* Right Column: Customer Bill Drawer */}
+        <div className="lg:col-span-5 xl:col-span-4 sticky top-20">
+          <div className="bg-[#f5eee3] dark:bg-[#241f1a] rounded-3xl border border-[#e4d8c5] dark:border-[#38322b] p-5 sm:p-6 shadow-xs space-y-4 transition-colors">
+            <div className="flex items-center justify-between border-b border-[#e4d8c5] dark:border-[#38322b] pb-3">
               <div className="flex items-center gap-2">
-                <Receipt className="w-5 h-5 text-[#d96528]" />
-                <h3 className="font-black text-base text-[#1c1917]">Current Customer Bill</h3>
+                <Receipt className="w-5 h-5 text-[#d96528] dark:text-[#ea7637]" />
+                <h3 className="font-black text-base text-[#1c1917] dark:text-[#f5eee3]">{t.currentBill}</h3>
               </div>
-              <span className="text-xs font-black px-2.5 py-1 bg-[#faeedf] text-[#c45418] border border-[#eed6c0] rounded-full">
-                {totalItemsCount} Piece(s)
+              <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-[#faeedf] dark:bg-[#3d2415] text-[#c45418] dark:text-[#ea7637] border border-[#eed6c0] dark:border-[#52301c]">
+                {totalPieces} {t.pieces}
               </span>
             </div>
 
-            {/* Cart Items List */}
             {cart.length === 0 ? (
-              <div className="py-8 text-center text-[#78716c] space-y-1.5 bg-white rounded-2xl border border-[#e8dfd1] p-4">
-                <ShoppingCart className="w-7 h-7 mx-auto text-[#8c827a]" />
-                <p className="text-xs font-bold text-[#44403c]">No items in current bill</p>
-                <p className="text-[11px] text-[#78716c]">Tap any item on the left to add to bill</p>
+              <div className="py-12 text-center text-[#78716c] dark:text-[#a89f91] space-y-2 bg-white dark:bg-[#201c18] rounded-2xl border border-[#e8dfd1] dark:border-[#38322b] p-4">
+                <ShoppingCart className="w-8 h-8 mx-auto text-[#8c827a]" />
+                <p className="text-xs font-bold text-[#44403c] dark:text-[#d6cec2]">{t.noItemsInBill}</p>
+                <p className="text-[11px]">{t.tapItemsLeft}</p>
               </div>
             ) : (
-              <div className="space-y-2 max-h-[220px] overflow-y-auto pr-1">
+              <div className="space-y-2 max-h-[280px] overflow-y-auto pr-1">
                 {cart.map(({ product, quantity }) => (
                   <div
                     key={product.id}
-                    className="p-3 bg-white rounded-2xl border border-[#e8dfd1] flex items-center justify-between gap-3 text-xs shadow-2xs"
+                    className="p-3 bg-white dark:bg-[#201c18] rounded-2xl border border-[#e8dfd1] dark:border-[#38322b] text-xs space-y-2 shadow-2xs"
                   >
-                    <div className="flex-1 min-w-0">
-                      <h5 className="font-extrabold text-[#1c1917] truncate">{product.name}</h5>
-                      <div className="text-[11px] text-[#78716c]">
-                        {formatCurrency(product.sellingPrice)} × {quantity}
+                    <div className="flex justify-between items-start">
+                      <div className="min-w-0 flex-1 pr-2">
+                        <h5 className="font-bold text-[#1c1917] dark:text-[#f5eee3] truncate">{product.name}</h5>
+                        <div className="text-[11px] text-[#78716c] dark:text-[#a89f91]">
+                          {formatCurrency(product.sellingPrice)} × {quantity}
+                        </div>
                       </div>
-                      <div className="text-[10px] text-[#2d6a3f] font-bold">
-                        Stock left: {product.currentStock - quantity} pcs
-                      </div>
+                      <span className="font-black text-sm text-[#1c1917] dark:text-[#f5eee3]">
+                        {formatCurrency(product.sellingPrice * quantity)}
+                      </span>
                     </div>
 
-                    <div className="flex items-center gap-1.5">
-                      <button
-                        onClick={() => updateQuantity(product.id, -1)}
-                        className="w-7 h-7 rounded-lg bg-[#f5eee3] border border-[#e4d8c5] flex items-center justify-center font-bold text-[#1c1917] hover:bg-[#ede3d3]"
-                      >
-                        <Minus className="w-3.5 h-3.5" />
-                      </button>
-                      <span className="w-5 text-center font-black text-sm text-[#1c1917]">
-                        {quantity}
-                      </span>
-                      <button
-                        onClick={() => updateQuantity(product.id, 1)}
-                        disabled={quantity >= product.currentStock}
-                        className="w-7 h-7 rounded-lg bg-[#f5eee3] border border-[#e4d8c5] flex items-center justify-center font-bold text-[#1c1917] hover:bg-[#ede3d3] disabled:opacity-30"
-                      >
-                        <Plus className="w-3.5 h-3.5" />
-                      </button>
+                    <div className="flex items-center justify-between pt-1 border-t border-[#f0e6d8] dark:border-[#38322b]">
+                      <div className="flex items-center gap-1.5 bg-[#fbf8f2] dark:bg-[#28231e] p-1 rounded-xl border border-[#e0d3c1] dark:border-[#3d3731]">
+                        <button
+                          type="button"
+                          onClick={() => updateQuantity(product.id, -1)}
+                          className="w-6 h-6 rounded-lg bg-white dark:bg-[#201c18] border border-[#e8dfd1] dark:border-[#38322b] flex items-center justify-center font-bold text-xs hover:bg-[#f5eee3] cursor-pointer"
+                        >
+                          <Minus className="w-3 h-3 text-[#1c1917] dark:text-[#f5eee3]" />
+                        </button>
+                        <span className="w-6 text-center font-black text-xs text-[#1c1917] dark:text-[#f5eee3]">{quantity}</span>
+                        <button
+                          type="button"
+                          onClick={() => updateQuantity(product.id, 1)}
+                          className="w-6 h-6 rounded-lg bg-[#d96528] text-white flex items-center justify-center font-bold text-xs hover:bg-[#c45418] cursor-pointer"
+                        >
+                          <Plus className="w-3 h-3" />
+                        </button>
+                      </div>
+
                       <button
                         onClick={() => removeFromCart(product.id)}
-                        className="w-7 h-7 rounded-lg text-[#b9381e] hover:bg-[#fdf0ed] flex items-center justify-center ml-1"
+                        className="text-[#b9381e] hover:text-[#992d18] text-[11px] font-bold cursor-pointer"
                       >
-                        <Trash2 className="w-3.5 h-3.5" />
+                        Remove
                       </button>
                     </div>
                   </div>
@@ -301,101 +301,109 @@ export const SalesModule: React.FC = () => {
               </div>
             )}
 
-            {/* Payment & Checkout Section */}
             {cart.length > 0 && (
-              <div className="space-y-3.5 pt-3 border-t border-[#e4d8c5]">
-                <input
-                  type="text"
-                  placeholder="Customer Name (Optional)"
-                  value={customerName}
-                  onChange={(e) => setCustomerName(e.target.value)}
-                  className="w-full px-3.5 py-2 bg-white border border-[#e8dfd1] rounded-xl text-xs sm:text-sm text-[#1c1917] focus:outline-hidden focus:ring-2 focus:ring-[#d96528]"
-                />
+              <div className="space-y-4 pt-2 border-t border-[#e4d8c5] dark:border-[#38322b]">
+                <div>
+                  <label className="block text-[11px] font-black uppercase text-[#44403c] dark:text-[#d6cec2] mb-1">
+                    Customer Name / Phone (Optional)
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Ramesh Walk-in"
+                    value={customerName}
+                    onChange={(e) => setCustomerName(e.target.value)}
+                    className="w-full px-3.5 py-2.5 bg-white dark:bg-[#201c18] border border-[#e0d3c1] dark:border-[#38322b] rounded-xl text-xs text-[#1c1917] dark:text-[#f5eee3]"
+                  />
+                </div>
 
                 <div>
-                  <label className="block text-[10px] font-extrabold uppercase text-[#78716c] mb-1">
-                    Payment Method
+                  <label className="block text-[11px] font-black uppercase text-[#44403c] dark:text-[#d6cec2] mb-1.5">
+                    {t.paymentMethod}
                   </label>
                   <div className="grid grid-cols-3 gap-2">
-                    {(['UPI', 'CASH', 'CARD'] as const).map((method) => (
+                    {[
+                      { id: 'UPI', label: 'UPI / QR', icon: <QrCode className="w-3.5 h-3.5" /> },
+                      { id: 'CASH', label: 'Cash', icon: <Banknote className="w-3.5 h-3.5" /> },
+                      { id: 'CARD', label: 'Card', icon: <CreditCard className="w-3.5 h-3.5" /> },
+                    ].map((pm) => (
                       <button
-                        key={method}
+                        key={pm.id}
                         type="button"
-                        onClick={() => setPaymentMethod(method)}
-                        className={`py-2 px-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 border transition-all cursor-pointer ${
-                          paymentMethod === method
-                            ? 'bg-[#d96528] text-white border-[#d96528] shadow-xs'
-                            : 'bg-white border-[#e8dfd1] text-[#57534e]'
+                        onClick={() => setPaymentMethod(pm.id as any)}
+                        className={`py-2 px-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 border transition-colors cursor-pointer ${
+                          paymentMethod === pm.id
+                            ? 'bg-[#2d6a3f] text-white border-[#2d6a3f] shadow-xs'
+                            : 'bg-white dark:bg-[#201c18] border-[#e8dfd1] dark:border-[#38322b] text-[#57534e] dark:text-[#a89f91]'
                         }`}
                       >
-                        {method === 'UPI' && <QrCode className="w-3.5 h-3.5" />}
-                        {method === 'CASH' && <Banknote className="w-3.5 h-3.5" />}
-                        {method === 'CARD' && <CreditCard className="w-3.5 h-3.5" />}
-                        {method === 'UPI' ? 'UPI / GPay' : method}
+                        {pm.icon}
+                        <span>{pm.label}</span>
                       </button>
                     ))}
                   </div>
                 </div>
 
-                <div className="bg-white p-4 rounded-2xl border border-[#e8dfd1] space-y-3">
-                  <div className="flex justify-between items-center text-sm">
-                    <span className="text-[#78716c] font-bold">Total Bill:</span>
-                    <span className="text-2xl font-black text-[#1c1917]">
-                      {formatCurrency(totalAmount)}
-                    </span>
-                  </div>
-
-                  <button
-                    onClick={handleCheckout}
-                    className="w-full py-3.5 px-4 rounded-xl bg-[#2d6a3f] hover:bg-[#235331] text-white font-black text-sm shadow-xs transition-all flex items-center justify-center gap-2 cursor-pointer"
-                  >
-                    <CheckCircle2 className="w-4 h-4" />
-                    Complete Sale ({totalItemsCount} pcs)
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Receipt Confirmation Drawer */}
-          <AnimatePresence>
-            {completedTxn && (
-              <motion.div
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                className="bg-white p-5 rounded-3xl border-2 border-[#eed6c0] shadow-md space-y-3"
-              >
-                <div className="flex items-center justify-between border-b border-[#f0e6d8] pb-2">
-                  <div className="flex items-center gap-1.5 text-[#2d6a3f] text-xs font-black uppercase">
-                    <CheckCircle2 className="w-4 h-4 text-[#2d6a3f]" /> Sale Recorded Successfully
-                  </div>
-                  <span className="text-xs font-mono bg-[#faeedf] px-2 py-0.5 rounded-md text-[#c45418] font-bold border border-[#eed6c0]">
-                    #{completedTxn.invoiceNumber}
+                <div className="bg-white dark:bg-[#201c18] p-4 rounded-2xl border border-[#e8dfd1] dark:border-[#38322b] flex items-center justify-between">
+                  <span className="text-xs font-bold text-[#78716c] dark:text-[#a89f91]">{t.totalBill}</span>
+                  <span className="text-2xl font-black text-[#2d6a3f] dark:text-[#4ade80]">
+                    {formatCurrency(totalAmount)}
                   </span>
                 </div>
 
-                <div className="bg-[#f5eee3] p-3 rounded-xl text-xs space-y-1 border border-[#e4d8c5]">
-                  <div className="font-bold text-[#1c1917]">Updated Stock Remaining:</div>
-                  {completedTxn.items.map((item, idx) => (
-                    <div key={idx} className="flex justify-between text-[11px] text-[#57534e]">
-                      <span>{item.product.name} (Sold: {item.quantity})</span>
-                      <strong className="text-[#2d6a3f]">{item.product.currentStock} left on shelf</strong>
-                    </div>
-                  ))}
-                </div>
-
                 <button
-                  onClick={() => setCompletedTxn(null)}
-                  className="w-full py-2 bg-[#f5eee3] hover:bg-[#ede3d3] rounded-xl text-xs font-bold text-[#57534e] cursor-pointer"
+                  onClick={handleCheckout}
+                  className="w-full py-4 px-4 rounded-2xl bg-[#2d6a3f] hover:bg-[#235331] text-white font-black text-sm shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer"
                 >
-                  Close Receipt
+                  <CheckCircle2 className="w-5 h-5" />
+                  <span>{t.completeSale} ({formatCurrency(totalAmount)})</span>
                 </button>
-              </motion.div>
+              </div>
             )}
-          </AnimatePresence>
+          </div>
         </div>
       </div>
+
+      {/* Bill Receipt Modal */}
+      <AnimatePresence>
+        {completedTxn && (
+          <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-2xs flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-white dark:bg-[#201c18] rounded-3xl max-w-sm w-full p-6 border border-[#e8dfd1] dark:border-[#38322b] shadow-2xl space-y-4"
+            >
+              <div className="text-center space-y-1">
+                <div className="w-12 h-12 rounded-2xl bg-[#eef5ee] dark:bg-[#1c3322] text-[#2d6a3f] dark:text-[#4ade80] flex items-center justify-center mx-auto text-xl font-bold">
+                  ✓
+                </div>
+                <h3 className="font-black text-lg text-[#1c1917] dark:text-[#f5eee3]">Sale Completed!</h3>
+                <p className="text-xs text-[#78716c] dark:text-[#a89f91]">Bill #{completedTxn.invoiceNumber}</p>
+              </div>
+
+              <div className="bg-[#fbf8f2] dark:bg-[#28231e] p-4 rounded-2xl border border-[#e8dfd1] dark:border-[#3d3731] space-y-2 text-xs">
+                {completedTxn.items.map((it, idx) => (
+                  <div key={idx} className="flex justify-between">
+                    <span className="truncate pr-2 text-[#1c1917] dark:text-[#f5eee3]">{it.product.name} × {it.quantity}</span>
+                    <strong className="text-[#1c1917] dark:text-[#f5eee3]">{formatCurrency(it.total)}</strong>
+                  </div>
+                ))}
+                <div className="pt-2 border-t border-[#e0d3c1] dark:border-[#3d3731] flex justify-between font-black text-sm text-[#1c1917] dark:text-[#f5eee3]">
+                  <span>Total Paid ({completedTxn.paymentMethod})</span>
+                  <span className="text-[#2d6a3f] dark:text-[#4ade80]">{formatCurrency(completedTxn.totalAmount)}</span>
+                </div>
+              </div>
+
+              <button
+                onClick={() => setCompletedTxn(null)}
+                className="w-full py-3 bg-[#d96528] text-white rounded-2xl font-black text-xs cursor-pointer shadow-xs"
+              >
+                Close & Next Customer
+              </button>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

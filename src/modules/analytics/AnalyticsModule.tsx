@@ -14,7 +14,7 @@ import {
 import { formatCurrency } from '@/src/lib/utils';
 
 export const AnalyticsModule: React.FC = () => {
-  const { products, stats, slowMovingProducts } = useInventory();
+  const { products, stats, slowMovingProducts, t } = useInventory();
 
   const fastMovingProducts = [...products]
     .sort((a, b) => b.totalUnitsSold - a.totalUnitsSold)
@@ -28,13 +28,13 @@ export const AnalyticsModule: React.FC = () => {
   return (
     <div className="space-y-6 sm:space-y-8 max-w-5xl mx-auto">
       {/* Banner */}
-      <div className="bg-[#f5eee3] p-5 sm:p-6 rounded-3xl border border-[#e4d8c5] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="bg-[#f5eee3] dark:bg-[#241f1a] p-5 sm:p-6 rounded-3xl border border-[#e4d8c5] dark:border-[#38322b] flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-colors">
         <div>
-          <h2 className="text-xl sm:text-2xl font-black text-[#1c1917]">
-            📊 Stock Insights & Money Tied in Clothes
+          <h2 className="text-xl sm:text-2xl font-black text-[#1c1917] dark:text-[#f5eee3]">
+            {t.stockInsightsTitle}
           </h2>
-          <p className="text-xs sm:text-sm text-[#57534e] mt-0.5">
-            See which clothes sell fast vs which ones are trapping your money on upper shelves.
+          <p className="text-xs sm:text-sm text-[#57534e] dark:text-[#a89f91] mt-0.5">
+            {t.stockInsightsSub}
           </p>
         </div>
       </div>
@@ -42,116 +42,99 @@ export const AnalyticsModule: React.FC = () => {
       {/* 1. THREE KEY FINANCIAL NUMBERS */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* Card 1: Money in Slow Clothes */}
-        <div className="bg-[#f5eef9] p-5 sm:p-6 rounded-3xl border border-[#e7daf0] shadow-xs flex flex-col justify-between">
+        <div className="bg-[#f5eef9] dark:bg-[#2e1d38] p-5 sm:p-6 rounded-3xl border border-[#e7daf0] dark:border-[#4d2861] shadow-xs flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between">
-              <span className="text-xs font-black uppercase text-[#704282] flex items-center gap-1.5">
-                <Lock className="w-4 h-4 text-[#704282]" />
-                Money Stuck in Slow Stock
+              <span className="text-xs font-black uppercase text-[#704282] dark:text-[#d8b4fe] flex items-center gap-1.5">
+                <Lock className="w-4 h-4 text-[#704282] dark:text-[#d8b4fe]" />
+                {t.moneyStuckSlowStock}
               </span>
             </div>
 
             <div className="mt-3">
-              <div className="text-2xl sm:text-3xl font-black text-[#704282]">
+              <div className="text-2xl sm:text-3xl font-black text-[#704282] dark:text-[#d8b4fe]">
                 {formatCurrency(stats.deadStockCapital)}
               </div>
-              <p className="text-xs text-[#57534e] mt-1 leading-snug">
-                Tied up in <strong>{slowMovingProducts.length} items</strong> with low or zero sales recently.
+              <p className="text-xs text-[#57534e] dark:text-[#e9d5ff] mt-1 leading-snug">
+                Tied up in <strong>{slowMovingProducts.length} items</strong> with low sales recently.
               </p>
             </div>
           </div>
-
-          <div className="mt-4 pt-3 border-t border-[#e7daf0] text-xs text-[#704282] font-bold">
-            💡 Recommendation: Run a 15% discount sale to free up cash
-          </div>
         </div>
 
-        {/* Card 2: Total Store Stock Value */}
-        <div className="bg-white p-5 sm:p-6 rounded-3xl border border-[#e8dfd1] shadow-xs flex flex-col justify-between">
+        {/* Card 2: Total Inventory Valuation */}
+        <div className="bg-[#fbf8f2] dark:bg-[#28231e] p-5 sm:p-6 rounded-3xl border border-[#e8dfd1] dark:border-[#38322b] shadow-xs flex flex-col justify-between">
           <div>
-            <span className="text-xs font-black uppercase text-[#8c827a] flex items-center gap-1.5">
-              <DollarSign className="w-4 h-4 text-[#2d6a3f]" />
-              Total Shop Inventory Value
-            </span>
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-black uppercase text-[#8c827a] dark:text-[#a89f91] flex items-center gap-1.5">
+                <DollarSign className="w-4 h-4 text-[#d96528]" />
+                {t.totalInventoryValuation}
+              </span>
+            </div>
 
             <div className="mt-3">
-              <div className="text-2xl sm:text-3xl font-black text-[#1c1917]">
+              <div className="text-2xl sm:text-3xl font-black text-[#1c1917] dark:text-[#f5eee3]">
                 {formatCurrency(stats.totalInventoryValuation)}
               </div>
-              <p className="text-xs text-[#78716c] mt-1">
-                Selling MRP Value: <strong>{formatCurrency(stats.totalRetailValuation)}</strong>
+              <p className="text-xs text-[#78716c] dark:text-[#a89f91] mt-1 leading-snug">
+                Total buying cost of all {stats.totalUnitsInStock} pieces in shop.
               </p>
             </div>
           </div>
-
-          <div className="mt-4 pt-3 border-t border-[#f0e6d8] text-xs text-[#2d6a3f] font-bold">
-            Potential Profit: +{formatCurrency(stats.potentialProfit)}
-          </div>
         </div>
 
-        {/* Card 3: Fast-Selling Items */}
-        <div className="bg-white p-5 sm:p-6 rounded-3xl border border-[#e8dfd1] shadow-xs flex flex-col justify-between">
+        {/* Card 3: Potential Profit */}
+        <div className="bg-[#eef5ee] dark:bg-[#1a2e1f] p-5 sm:p-6 rounded-3xl border border-[#d2e4d3] dark:border-[#2d5937] shadow-xs flex flex-col justify-between">
           <div>
-            <span className="text-xs font-black uppercase text-[#8c827a] flex items-center gap-1.5">
-              <Flame className="w-4 h-4 text-[#d96528]" />
-              Fast-Selling Champions
-            </span>
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-black uppercase text-[#2d6a3f] dark:text-[#86efac] flex items-center gap-1.5">
+                <TrendingUp className="w-4 h-4 text-[#2d6a3f] dark:text-[#86efac]" />
+                Expected Retail Profit
+              </span>
+            </div>
 
             <div className="mt-3">
-              <div className="text-2xl sm:text-3xl font-black text-[#1c1917]">
-                {fastMovingProducts.length} Hot Items
+              <div className="text-2xl sm:text-3xl font-black text-[#2d6a3f] dark:text-[#86efac]">
+                {formatCurrency(stats.potentialProfit)}
               </div>
-              <p className="text-xs text-[#78716c] mt-1">
-                Clothes with regular customer demand. Keep restocking these.
+              <p className="text-xs text-[#57534e] dark:text-[#bbf7d0] mt-1 leading-snug">
+                When current inventory is fully sold at marked MRP.
               </p>
             </div>
           </div>
-
-          <div className="mt-4 pt-3 border-t border-[#f0e6d8] text-xs text-[#d96528] font-bold">
-            Top Cash Drivers for Store
-          </div>
         </div>
       </div>
 
-      {/* 2. FAST SELLERS VS SLOW SELLERS LISTS */}
+      {/* 2. FAST MOVING VS SLOW MOVING */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Fast-Moving */}
-        <div className="bg-white rounded-3xl border border-[#e8dfd1] p-5 sm:p-6 shadow-xs space-y-4">
-          <div className="flex items-center justify-between border-b border-[#f0e6d8] pb-3">
-            <div className="flex items-center gap-2">
-              <div className="p-2 rounded-xl bg-[#eef5ee] text-[#2d6a3f]">
-                <Flame className="w-5 h-5" />
-              </div>
-              <div>
-                <h3 className="font-black text-base text-[#1c1917]">Top Fast-Moving Clothes</h3>
-                <p className="text-xs text-[#78716c]">Highest sales volume</p>
-              </div>
-            </div>
-            <span className="text-xs font-bold text-[#2d6a3f] bg-[#eef5ee] px-2.5 py-1 rounded-full border border-[#d2e4d3]">
-              Selling Fast
-            </span>
+        {/* Fast Selling */}
+        <div className="bg-white dark:bg-[#201c18] rounded-3xl border border-[#e8dfd1] dark:border-[#38322b] p-5 sm:p-6 shadow-xs space-y-4 transition-colors">
+          <div className="flex items-center gap-2 border-b border-[#f0e6d8] dark:border-[#38322b] pb-3">
+            <Flame className="w-5 h-5 text-[#d96528] dark:text-[#ea7637]" />
+            <h3 className="font-black text-base text-[#1c1917] dark:text-[#f5eee3]">
+              {t.topFastMoving}
+            </h3>
           </div>
 
-          <div className="space-y-2.5">
-            {fastMovingProducts.map((p, idx) => (
+          <div className="space-y-3">
+            {fastMovingProducts.map((p) => (
               <div
                 key={p.id}
-                className="p-3 bg-[#fbf8f2] rounded-2xl border border-[#f0e6d8] flex items-center justify-between text-xs"
+                className="p-3.5 bg-[#fbf8f2] dark:bg-[#28231e] rounded-2xl border border-[#e8dfd1] dark:border-[#38322b] flex items-center justify-between text-xs gap-3"
               >
                 <div>
-                  <div className="font-bold text-[#1c1917]">{p.name}</div>
-                  <div className="text-[11px] text-[#78716c]">
-                    Weaver: <strong>{p.supplier}</strong>
+                  <h4 className="font-extrabold text-[#1c1917] dark:text-[#f5eee3] text-sm truncate">{p.name}</h4>
+                  <div className="text-[11px] text-[#78716c] dark:text-[#a89f91] mt-0.5">
+                    {p.rackLocation} • {p.supplier}
                   </div>
                 </div>
 
-                <div className="text-right">
-                  <div className="inline-flex items-center gap-1 text-[#2d6a3f] font-black text-xs">
-                    <TrendingUp className="w-3.5 h-3.5" />
-                    {p.totalUnitsSold} pieces sold
-                  </div>
-                  <div className="text-[11px] text-[#57534e]">
-                    In Stock: <strong>{p.currentStock} pcs</strong>
+                <div className="text-right shrink-0">
+                  <span className="font-black text-xs px-2.5 py-0.5 rounded-full bg-[#eef5ee] dark:bg-[#1a2e1f] text-[#2d6a3f] dark:text-[#86efac] border border-[#d2e4d3] dark:border-[#2d5937]">
+                    {p.totalUnitsSold} {t.pieces} Sold
+                  </span>
+                  <div className="text-[11px] text-[#78716c] dark:text-[#a89f91] mt-0.5">
+                    {p.currentStock} {t.pieces} left
                   </div>
                 </div>
               </div>
@@ -159,62 +142,68 @@ export const AnalyticsModule: React.FC = () => {
           </div>
         </div>
 
-        {/* Slow-Moving / Dead Stock */}
-        <div className="bg-white rounded-3xl border border-[#e8dfd1] p-5 sm:p-6 shadow-xs space-y-4">
-          <div className="flex items-center justify-between border-b border-[#f0e6d8] pb-3">
-            <div className="flex items-center gap-2">
-              <div className="p-2 rounded-xl bg-[#f5eef9] text-[#704282]">
-                <TrendingDown className="w-5 h-5" />
-              </div>
-              <div>
-                <h3 className="font-black text-base text-[#1c1917]">Slow-Moving Stock</h3>
-                <p className="text-xs text-[#78716c]">Sitting on shelves for a long time</p>
-              </div>
-            </div>
-            <span className="text-xs font-bold text-[#704282] bg-[#f5eef9] px-2.5 py-1 rounded-full border border-[#e7daf0]">
-              {formatCurrency(stats.deadStockCapital)} Stuck
-            </span>
+        {/* Slow Moving */}
+        <div className="bg-white dark:bg-[#201c18] rounded-3xl border border-[#e8dfd1] dark:border-[#38322b] p-5 sm:p-6 shadow-xs space-y-4 transition-colors">
+          <div className="flex items-center gap-2 border-b border-[#f0e6d8] dark:border-[#38322b] pb-3">
+            <TrendingDown className="w-5 h-5 text-[#704282] dark:text-[#d8b4fe]" />
+            <h3 className="font-black text-base text-[#1c1917] dark:text-[#f5eee3]">
+              {t.slowMovingStock}
+            </h3>
           </div>
 
-          <div className="space-y-2.5">
-            {slowMovingProducts.map((p) => (
-              <div
-                key={p.id}
-                className="p-3 bg-[#f5eef9]/40 rounded-2xl border border-[#e7daf0] flex items-center justify-between text-xs"
-              >
-                <div>
-                  <div className="font-bold text-[#1c1917]">{p.name}</div>
-                  <div className="text-[11px] text-[#78716c]">
-                    {p.currentStock} unsold pieces • {p.rackLocation}
+          <div className="space-y-3">
+            {slowMovingProducts.length === 0 ? (
+              <div className="p-8 text-center text-xs text-[#78716c] dark:text-[#a89f91]">
+                No dead stock! All catalog items have regular sales velocity.
+              </div>
+            ) : (
+              slowMovingProducts.slice(0, 5).map((p) => (
+                <div
+                  key={p.id}
+                  className="p-3.5 bg-[#fbf8f2] dark:bg-[#28231e] rounded-2xl border border-[#e8dfd1] dark:border-[#38322b] flex items-center justify-between text-xs gap-3"
+                >
+                  <div>
+                    <h4 className="font-extrabold text-[#1c1917] dark:text-[#f5eee3] text-sm truncate">{p.name}</h4>
+                    <div className="text-[11px] text-[#78716c] dark:text-[#a89f91] mt-0.5">
+                      {p.rackLocation} • Cost: {formatCurrency(p.costPrice)}
+                    </div>
+                  </div>
+
+                  <div className="text-right shrink-0">
+                    <span className="font-black text-xs px-2.5 py-0.5 rounded-full bg-[#f5eef9] dark:bg-[#2e1d38] text-[#704282] dark:text-[#d8b4fe] border border-[#e7daf0] dark:border-[#4d2861]">
+                      {p.currentStock} {t.pieces} stuck
+                    </span>
+                    <div className="text-[11px] text-[#704282] dark:text-[#d8b4fe] font-bold mt-0.5">
+                      {formatCurrency(p.currentStock * p.costPrice)}
+                    </div>
                   </div>
                 </div>
-
-                <div className="text-right">
-                  <span className="text-xs font-black text-[#704282] block">
-                    {formatCurrency(p.currentStock * p.costPrice)}
-                  </span>
-                  <span className="text-[10px] text-[#8c827a]">capital locked</span>
-                </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </div>
       </div>
 
-      {/* 3. MONEY INVESTED PER CATEGORY */}
-      <div className="bg-white rounded-3xl border border-[#e8dfd1] p-5 sm:p-6 shadow-xs space-y-3">
-        <h3 className="font-black text-base text-[#1c1917]">
-          Money Invested in Each Category
-        </h3>
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-2.5">
-          {Object.entries(categoryCapital).map(([category, amount]) => (
+      {/* 3. MONEY TIED BY CATEGORY */}
+      <div className="bg-white dark:bg-[#201c18] rounded-3xl border border-[#e8dfd1] dark:border-[#38322b] p-5 sm:p-6 shadow-xs space-y-4 transition-colors">
+        <div className="flex items-center gap-2 border-b border-[#f0e6d8] dark:border-[#38322b] pb-3">
+          <Tag className="w-5 h-5 text-[#d96528]" />
+          <h3 className="font-black text-base text-[#1c1917] dark:text-[#f5eee3]">
+            {t.moneyInvestedCategory}
+          </h3>
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+          {Object.entries(categoryCapital).map(([category, capital]) => (
             <div
               key={category}
-              className="p-3 bg-[#fbf8f2] rounded-2xl border border-[#f0e6d8]"
+              className="p-3.5 bg-[#fbf8f2] dark:bg-[#28231e] rounded-2xl border border-[#e8dfd1] dark:border-[#38322b] space-y-1"
             >
-              <div className="text-[11px] font-bold text-[#78716c] truncate">{category}</div>
-              <div className="text-sm font-black text-[#1c1917] mt-1">
-                {formatCurrency(amount)}
+              <span className="text-[10px] font-bold text-[#8c827a] dark:text-[#a89f91] uppercase block truncate">
+                {category}
+              </span>
+              <div className="text-lg font-black text-[#1c1917] dark:text-[#f5eee3]">
+                {formatCurrency(capital)}
               </div>
             </div>
           ))}

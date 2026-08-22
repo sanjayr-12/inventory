@@ -1,8 +1,10 @@
-import { Product, StockMovement, SaleTransaction, InventoryStats } from '@/src/types';
+import { Product, StockMovement, SaleTransaction, InventoryStats, PurchaseOrder } from '@/src/types';
+import { VENDORS_CATALOG } from '@/src/lib/vendors';
 
 const PRODUCTS_KEY = 'laxmi_inventory_products_v1';
 const MOVEMENTS_KEY = 'laxmi_inventory_movements_v1';
 const TRANSACTIONS_KEY = 'laxmi_inventory_transactions_v1';
+const ORDERS_KEY = 'laxmi_inventory_purchase_orders_v1';
 
 export const INITIAL_PRODUCTS: Product[] = [
   {
@@ -60,7 +62,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     costPrice: 350,
     sellingPrice: 699,
     supplier: 'Tirupur Garments Hub',
-    rackLocation: 'Rack M-3 (Men Formals)',
+    rackLocation: 'Rack M-3 (Men Formal Shirts)',
     totalUnitsReceived: 60,
     totalUnitsSold: 36,
     lastRestockedDate: '2026-08-10T12:00:00.000Z',
@@ -71,7 +73,7 @@ export const INITIAL_PRODUCTS: Product[] = [
   {
     id: 'prod-4',
     sku: 'WOM-CHU-MAR-04',
-    name: "Women's Chudidar Material – Maroon",
+    name: "Women's Chudidar Material – Deep Maroon",
     category: "Women's Wear",
     color: 'Deep Maroon',
     sizeOrLength: 'Unstitched 3-Piece (Top, Bottom, Dupatta)',
@@ -81,7 +83,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     costPrice: 600,
     sellingPrice: 1199,
     supplier: 'Surat Silk Mills',
-    rackLocation: 'Rack W-1 (Dress Materials)',
+    rackLocation: 'Rack W-1 (Dress Materials & Chudidar)',
     totalUnitsReceived: 20,
     totalUnitsSold: 14,
     lastRestockedDate: '2026-08-05T14:30:00.000Z',
@@ -122,7 +124,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     lowStockThreshold: 6,
     costPrice: 550,
     sellingPrice: 1100,
-    supplier: 'Salem Handlooms',
+    supplier: 'Salem Handlooms Syndicate',
     rackLocation: 'Rack D-1 (Dhoti Section)',
     totalUnitsReceived: 30,
     totalUnitsSold: 30,
@@ -139,12 +141,12 @@ export const INITIAL_PRODUCTS: Product[] = [
     color: 'Emerald Green with Silver Weave',
     sizeOrLength: '6.2 meters',
     fabric: 'Jacquard Art Silk',
-    currentStock: 22, // SLOW MOVING - Dead Stock example
+    currentStock: 22,
     lowStockThreshold: 4,
     costPrice: 2100,
     sellingPrice: 3899,
     supplier: 'Varanasi Silk Craft',
-    rackLocation: 'Rack S-4 (Upper Shelf - Banarasi)',
+    rackLocation: 'Rack S-4 (Banarasi & Heavy Silks)',
     totalUnitsReceived: 25,
     totalUnitsSold: 3,
     lastRestockedDate: '2026-05-15T11:00:00.000Z',
@@ -160,12 +162,12 @@ export const INITIAL_PRODUCTS: Product[] = [
     color: 'Natural Cream',
     sizeOrLength: 'Size 42 (XL)',
     fabric: '100% Organic Linen',
-    currentStock: 35, // SLOW MOVING
+    currentStock: 35,
     lowStockThreshold: 5,
     costPrice: 750,
     sellingPrice: 1499,
     supplier: 'Tirupur Garments Hub',
-    rackLocation: 'Rack M-1 (Ethnic Wear)',
+    rackLocation: 'Rack M-1 (Men Ethnic & Kurtas)',
     totalUnitsReceived: 40,
     totalUnitsSold: 5,
     lastRestockedDate: '2026-06-01T10:00:00.000Z',
@@ -181,12 +183,12 @@ export const INITIAL_PRODUCTS: Product[] = [
     color: 'Peacock Blue & Magenta',
     sizeOrLength: 'Size 26 (Age 5-7)',
     fabric: 'Art Silk with Zari',
-    currentStock: 4, // LOW STOCK
+    currentStock: 4,
     lowStockThreshold: 8,
     costPrice: 650,
     sellingPrice: 1250,
     supplier: 'Madurai Weavers Syndicate',
-    rackLocation: 'Rack K-2 (Kids Festival)',
+    rackLocation: 'Rack K-2 (Kids Festival Wear)',
     totalUnitsReceived: 25,
     totalUnitsSold: 21,
     lastRestockedDate: '2026-08-08T10:00:00.000Z',
@@ -336,6 +338,51 @@ export const INITIAL_TRANSACTIONS: SaleTransaction[] = [
   },
 ];
 
+// Initial pre-seeded purchase order from Kanchipuram Weavers
+export const INITIAL_PURCHASE_ORDERS: PurchaseOrder[] = [
+  {
+    id: 'ORD-8921',
+    trackingHash: 'ORD-8921',
+    vendorId: 'ven-kanchipuram',
+    vendorName: 'Kanchipuram Master Weavers',
+    vendorCity: 'Kanchipuram, Tamil Nadu',
+    vendorCoordinates: { lat: 12.8342, lng: 79.7036 },
+    items: [
+      {
+        vendorItemId: 'vitem-kpm-silk-01',
+        name: 'Kanchipuram Silk Saree – Crimson Gold',
+        category: 'Sarees',
+        fabric: 'Pure Mulberry Silk with Heavy Zari',
+        color: 'Crimson Red & Rich Gold',
+        quantity: 10,
+        unitPrice: 4200,
+        retailEstimate: 7999,
+        total: 42000,
+        targetRack: 'Rack S-1 (Wedding Silk VIP Section)',
+      },
+      {
+        vendorItemId: 'vitem-kpm-temple-02',
+        name: 'Temple Border Kanchi Pattu – Peacock Blue',
+        category: 'Sarees',
+        fabric: 'Pure Silk with Gold Korvai Border',
+        color: 'Peacock Blue & Maroon',
+        quantity: 10,
+        unitPrice: 3800,
+        retailEstimate: 6899,
+        total: 38000,
+        targetRack: 'Rack S-1 (Wedding Silk VIP Section)',
+      },
+    ],
+    totalAmount: 80000,
+    totalItems: 20,
+    createdAt: Date.now() - 15000, // Created 15 seconds ago (so truck is currently in transit!)
+    status: 'IN_TRANSIT',
+    truckNumber: 'TN 21 AX 8842',
+    driverName: 'Ramu Express Logistics',
+    driverPhone: '+91 98421 99310',
+  },
+];
+
 export class StorageService {
   static getProducts(): Product[] {
     if (typeof window === 'undefined') return INITIAL_PRODUCTS;
@@ -406,22 +453,52 @@ export class StorageService {
     }
   }
 
+  static getPurchaseOrders(): PurchaseOrder[] {
+    if (typeof window === 'undefined') return INITIAL_PURCHASE_ORDERS;
+    try {
+      const stored = localStorage.getItem(ORDERS_KEY);
+      if (!stored) {
+        this.savePurchaseOrders(INITIAL_PURCHASE_ORDERS);
+        return INITIAL_PURCHASE_ORDERS;
+      }
+      return JSON.parse(stored);
+    } catch {
+      return INITIAL_PURCHASE_ORDERS;
+    }
+  }
+
+  static savePurchaseOrders(orders: PurchaseOrder[]): void {
+    if (typeof window === 'undefined') return;
+    try {
+      localStorage.setItem(ORDERS_KEY, JSON.stringify(orders));
+    } catch (e) {
+      console.error('Failed to save purchase orders to localStorage', e);
+    }
+  }
+
   static resetToSampleData(): {
     products: Product[];
     movements: StockMovement[];
     transactions: SaleTransaction[];
+    purchaseOrders: PurchaseOrder[];
   } {
     this.saveProducts(INITIAL_PRODUCTS);
     this.saveMovements(INITIAL_MOVEMENTS);
     this.saveTransactions(INITIAL_TRANSACTIONS);
+    this.savePurchaseOrders(INITIAL_PURCHASE_ORDERS);
     return {
       products: INITIAL_PRODUCTS,
       movements: INITIAL_MOVEMENTS,
       transactions: INITIAL_TRANSACTIONS,
+      purchaseOrders: INITIAL_PURCHASE_ORDERS,
     };
   }
 
-  static calculateStats(products: Product[], transactions: SaleTransaction[]): InventoryStats {
+  static calculateStats(
+    products: Product[],
+    transactions: SaleTransaction[],
+    orders: PurchaseOrder[] = []
+  ): InventoryStats {
     let totalUnitsInStock = 0;
     let totalInventoryValuation = 0;
     let totalRetailValuation = 0;
@@ -447,7 +524,6 @@ export class StorageService {
         healthyStockCount++;
       }
 
-      // Check for slow / dead stock (stock > 0 and (no sales or very low sales ratio))
       const isSlowMoving =
         p.currentStock > 10 &&
         (p.totalUnitsSold <= 5 || (p.lastSoldDate && new Date(p.lastSoldDate).getTime() < thirtyDaysAgo));
@@ -458,7 +534,6 @@ export class StorageService {
       }
     }
 
-    // Calculate today's sales
     const todayStart = new Date();
     todayStart.setHours(0, 0, 0, 0);
 
@@ -473,6 +548,10 @@ export class StorageService {
       }
     }
 
+    const activeInwardOrdersCount = orders.filter(
+      (o) => o.status === 'ORDER_PLACED' || o.status === 'IN_TRANSIT' || o.status === 'DELIVERED'
+    ).length;
+
     return {
       totalUniqueProducts: products.length,
       totalUnitsInStock,
@@ -486,6 +565,7 @@ export class StorageService {
       todaysRevenue,
       deadStockCount,
       deadStockCapital,
+      activeInwardOrdersCount,
     };
   }
 }

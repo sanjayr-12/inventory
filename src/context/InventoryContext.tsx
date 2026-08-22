@@ -9,8 +9,16 @@ import {
   InventoryStats,
   ActiveTab,
   Category,
+  PurchaseOrder,
+  PurchaseOrderItem,
+  Vendor,
+  VendorItem,
+  ReturnRequest,
+  Language,
+  ThemeMode,
 } from '@/src/types';
 import { StorageService } from '@/src/lib/storage';
+import { TRANSLATIONS, Translations } from '@/src/lib/translations';
 import { toast } from 'sonner';
 import confetti from 'canvas-confetti';
 
@@ -36,12 +44,27 @@ interface InventoryContextType {
   products: Product[];
   movements: StockMovement[];
   transactions: SaleTransaction[];
+  purchaseOrders: PurchaseOrder[];
   stats: InventoryStats;
   isLoading: boolean;
   
-  // Navigation state
+  // Navigation state (Persisted across reloads)
   activeTab: ActiveTab;
   setActiveTab: (tab: ActiveTab) => void;
+  
+  // i18n Language Support (Persisted across reloads)
+  language: Language;
+  setLanguage: (lang: Language) => void;
+  t: Translations;
+  
+  // Dark/Light Theme Mode (Persisted across reloads)
+  theme: ThemeMode;
+  setTheme: (theme: ThemeMode) => void;
+  toggleTheme: () => void;
+  
+  // Active Tracking Order ID for Modal or view
+  activeTrackingOrderId: string | null;
+  setActiveTrackingOrderId: (id: string | null) => void;
   
   // Filters & Search
   searchQuery: string;
@@ -62,6 +85,16 @@ interface InventoryContextType {
   deleteProduct: (productId: string) => void;
   resetToSampleData: () => void;
   
+  // B2B Vendor Procurement & Tracking
+  createPurchaseOrder: (
+    vendor: Vendor,
+    selectedItems: { vendorItem: VendorItem; quantity: number }[]
+  ) => PurchaseOrder;
+  completeStockInFromOrder: (orderId: string) => { success: boolean; message: string };
+  requestReturnOrder: (orderId: string, defectiveQty: number, reason: string) => { success: boolean; message: string };
+  confirmReturnLoaded: (orderId: string) => void;
+  getPurchaseOrderById: (orderIdOrHash: string) => PurchaseOrder | undefined;
+  
   // Low stock / Reorder helpers
   lowStockProducts: Product[];
   outOfStockProducts: Product[];
@@ -70,25 +103,64 @@ interface InventoryContextType {
 
 const InventoryContext = createContext<InventoryContextType | undefined>(undefined);
 
+const TRUCK_NUMBERS = ['TN 21 AX 8842', 'TN 33 AB 4920', 'TN 28 CZ 1109', 'TN 38 BK 9044', 'TN 59 DF 3281'];
+const DRIVER_NAMES = ['Ramu Express Logistics', 'Murugan Fast Cargo', 'Selvam Highway Transport', 'Kannan Weaves Carrier'];
+const DRIVER_PHONES = ['+91 98421 99310', '+91 94432 55190', '+91 98433 12480', '+91 99420 88319'];
+
 export function InventoryProvider({ children }: { children: React.ReactNode }) {
   const [products, setProducts] = useState<Product[]>([]);
   const [movements, setMovements] = useState<StockMovement[]>([]);
   const [transactions, setTransactions] = useState<SaleTransaction[]>([]);
+  const [purchaseOrders, setPurchaseOrders] = useState<PurchaseOrder[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  const [activeTab, setActiveTab] = useState<ActiveTab>('overview');
+  const [activeTab, setActiveTabState] = useState<ActiveTab>('overview');
+  const [language, setLanguageState] = useState<Language>('en');
+  const [theme, setThemeState] = useState<ThemeMode>('light');
+
+  const [activeTrackingOrderId, setActiveTrackingOrderId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<Category | 'All'>('All');
 
-  // Load from local storage on mount
+  // Load from local storage on mount (Persisted state restoration)
   useEffect(() => {
     try {
       const p = StorageService.getProducts();
       const m = StorageService.getMovements();
       const t = StorageService.getTransactions();
+      const o = StorageService.getPurchaseOrders();
       setProducts(p);
       setMovements(m);
       setTransactions(t);
+      setPurchaseOrders(o);
+
+      // Restore active tab
+      const savedTab = localStorage.getItem('laxmi_active_tab') as ActiveTab;
+      if (
+        savedTab &&
+        ['overview', 'stock-in', 'vendor-orders', 'sales', 'inventory', 'low-stock', 'analytics'].includes(
+          savedTab
+        )
+      ) {
+        setActiveTabState(savedTab);
+      }
+
+      // Restore language
+      const savedLang = localStorage.getItem('laxmi_language') as Language;
+      if (savedLang && ['en', 'ta', 'hi'].includes(savedLang)) {
+        setLanguageState(savedLang);
+      }
+
+      // Restore theme
+      const savedTheme = localStorage.getItem('laxmi_theme') as ThemeMode;
+      if (savedTheme && ['light', 'dark'].includes(savedTheme)) {
+        setThemeState(savedTheme);
+        if (savedTheme === 'dark') {
+          document.documentElement.classList.add('dark');
+        } else {
+          document.documentElement.classList.remove('dark');
+        }
+      }
     } catch (e) {
       console.error('Failed loading storage data:', e);
     } finally {
@@ -96,7 +168,41 @@ export function InventoryProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  // Save to storage on update
+  const setActiveTab = useCallback((tab: ActiveTab) => {
+    setActiveTabState(tab);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('laxmi_active_tab', tab);
+    }
+  }, []);
+
+  const setLanguage = useCallback((lang: Language) => {
+    setLanguageState(lang);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('laxmi_language', lang);
+    }
+    const names = { en: 'English', ta: 'தமிழ் (Tamil)', hi: 'हिन्दी (Hindi)' };
+    toast.success(`Language set to ${names[lang]}`);
+  }, []);
+
+  const setTheme = useCallback((t: ThemeMode) => {
+    setThemeState(t);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('laxmi_theme', t);
+      if (t === 'dark') {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+    }
+  }, []);
+
+  const toggleTheme = useCallback(() => {
+    const next = theme === 'light' ? 'dark' : 'light';
+    setTheme(next);
+  }, [theme, setTheme]);
+
+  const t = useMemo(() => TRANSLATIONS[language] || TRANSLATIONS.en, [language]);
+
   const updateProductsState = useCallback((newProducts: Product[]) => {
     setProducts(newProducts);
     StorageService.saveProducts(newProducts);
@@ -112,10 +218,15 @@ export function InventoryProvider({ children }: { children: React.ReactNode }) {
     StorageService.saveTransactions(newTransactions);
   }, []);
 
+  const updatePurchaseOrdersState = useCallback((newOrders: PurchaseOrder[]) => {
+    setPurchaseOrders(newOrders);
+    StorageService.savePurchaseOrders(newOrders);
+  }, []);
+
   // Stats calculation
   const stats = useMemo(() => {
-    return StorageService.calculateStats(products, transactions);
-  }, [products, transactions]);
+    return StorageService.calculateStats(products, transactions, purchaseOrders);
+  }, [products, transactions, purchaseOrders]);
 
   // Filtered product lists
   const outOfStockProducts = useMemo(() => {
@@ -144,7 +255,6 @@ export function InventoryProvider({ children }: { children: React.ReactNode }) {
       let updatedProducts = [...products];
 
       if (payload.isNewProduct || !payload.productId) {
-        // Create new product
         const newSku =
           payload.sku ||
           `${payload.category?.substring(0, 3).toUpperCase() || 'ITM'}-${Date.now().toString().slice(-4)}`;
@@ -172,7 +282,6 @@ export function InventoryProvider({ children }: { children: React.ReactNode }) {
         updatedProducts = [newProduct, ...updatedProducts];
         targetProduct = newProduct;
       } else {
-        // Restock existing product
         const idx = updatedProducts.findIndex((p) => p.id === payload.productId);
         if (idx === -1) {
           return { success: false, message: 'Product not found' };
@@ -195,7 +304,6 @@ export function InventoryProvider({ children }: { children: React.ReactNode }) {
         targetProduct = updated;
       }
 
-      // Create Movement record
       const newMovement: StockMovement = {
         id: `mov-${Date.now()}`,
         productId: targetProduct.id,
@@ -214,8 +322,8 @@ export function InventoryProvider({ children }: { children: React.ReactNode }) {
       updateProductsState(updatedProducts);
       updateMovementsState([newMovement, ...movements]);
 
-      toast.success(`➕ Stock In Recorded: +${payload.quantity} units of ${targetProduct.name}`, {
-        description: `New Available Stock: ${targetProduct.currentStock} pieces at ${targetProduct.rackLocation}`,
+      toast.success(`➕ Stock In: +${payload.quantity} ${targetProduct.name}`, {
+        description: `Available: ${targetProduct.currentStock} pieces at ${targetProduct.rackLocation}`,
       });
 
       return { success: true, message: 'Stock received successfully' };
@@ -235,7 +343,6 @@ export function InventoryProvider({ children }: { children: React.ReactNode }) {
         return { success: false, error: 'No items in cart' };
       }
 
-      // Validate stock availability
       for (const item of items) {
         const prod = products.find((p) => p.id === item.productId);
         if (!prod) {
@@ -316,22 +423,311 @@ export function InventoryProvider({ children }: { children: React.ReactNode }) {
       updateMovementsState([...newMovements, ...movements]);
       updateTransactionsState([newTransaction, ...transactions]);
 
-      // Fire confetti celebration on successful sale!
       try {
         confetti({
-          particleCount: 80,
-          spread: 60,
+          particleCount: 75,
+          spread: 55,
           origin: { y: 0.7 },
         });
       } catch {}
 
-      toast.success(`🛒 Sale Completed! Bill #${invoiceNum}`, {
-        description: `${totalCount} item(s) sold for ₹${totalAmount.toLocaleString('en-IN')}. Stock updated automatically!`,
+      toast.success(`🛒 Sale Recorded! Bill #${invoiceNum}`, {
+        description: `${totalCount} piece(s) sold for ₹${totalAmount.toLocaleString('en-IN')}. Stock updated automatically!`,
       });
 
       return { success: true, transaction: newTransaction };
     },
     [products, movements, transactions, updateProductsState, updateMovementsState, updateTransactionsState]
+  );
+
+  // ACTION: Create Purchase Order (B2B Vendor Order)
+  const createPurchaseOrder = useCallback(
+    (vendor: Vendor, selectedItems: { vendorItem: VendorItem; quantity: number }[]) => {
+      const orderNum = Math.floor(1000 + Math.random() * 9000);
+      const orderId = `ORD-${orderNum}`;
+      const randomIdx = Math.floor(Math.random() * TRUCK_NUMBERS.length);
+
+      const items: PurchaseOrderItem[] = selectedItems.map(({ vendorItem, quantity }) => ({
+        vendorItemId: vendorItem.id,
+        name: vendorItem.name,
+        category: vendorItem.category,
+        fabric: vendorItem.fabric,
+        color: vendorItem.color,
+        quantity,
+        unitPrice: vendorItem.unitPrice,
+        retailEstimate: vendorItem.retailEstimate,
+        total: vendorItem.unitPrice * quantity,
+        targetRack: vendorItem.defaultRack,
+      }));
+
+      const totalAmount = items.reduce((sum, item) => sum + item.total, 0);
+      const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
+
+      const newOrder: PurchaseOrder = {
+        id: orderId,
+        trackingHash: orderId,
+        vendorId: vendor.id,
+        vendorName: vendor.name,
+        vendorCity: `${vendor.city}, ${vendor.state}`,
+        vendorCoordinates: vendor.coordinates,
+        items,
+        totalAmount,
+        totalItems,
+        createdAt: Date.now(),
+        status: 'ORDER_PLACED',
+        truckNumber: TRUCK_NUMBERS[randomIdx],
+        driverName: DRIVER_NAMES[randomIdx],
+        driverPhone: DRIVER_PHONES[randomIdx],
+      };
+
+      const updatedOrders = [newOrder, ...purchaseOrders];
+      updatePurchaseOrdersState(updatedOrders);
+
+      try {
+        confetti({
+          particleCount: 80,
+          spread: 60,
+          origin: { y: 0.6 },
+        });
+      } catch {}
+
+      toast.success(`🚚 Order #${orderId} Placed with ${vendor.name}!`, {
+        description: `Tracking link generated for ${totalItems} pieces. Vehicle assigned.`,
+      });
+
+      return newOrder;
+    },
+    [purchaseOrders, updatePurchaseOrdersState]
+  );
+
+  // ACTION: Complete Stock In from Delivered Purchase Order
+  const completeStockInFromOrder = useCallback(
+    (orderId: string) => {
+      const orderIdx = purchaseOrders.findIndex((o) => o.id === orderId || o.trackingHash === orderId);
+      if (orderIdx === -1) {
+        return { success: false, message: 'Order not found' };
+      }
+
+      const order = purchaseOrders[orderIdx];
+      if (order.status === 'STOCKED') {
+        return { success: false, message: 'Order has already been stocked into inventory' };
+      }
+
+      const now = new Date().toISOString();
+      let updatedProducts = [...products];
+      const newMovements: StockMovement[] = [];
+
+      for (const item of order.items) {
+        const existingIdx = updatedProducts.findIndex(
+          (p) => p.name.toLowerCase() === item.name.toLowerCase() || p.supplier === order.vendorName
+        );
+
+        if (existingIdx !== -1) {
+          const existing = updatedProducts[existingIdx];
+          const newStock = existing.currentStock + item.quantity;
+          const updated: Product = {
+            ...existing,
+            currentStock: newStock,
+            totalUnitsReceived: existing.totalUnitsReceived + item.quantity,
+            costPrice: item.unitPrice,
+            sellingPrice: item.retailEstimate || existing.sellingPrice,
+            lastRestockedDate: now,
+          };
+          updatedProducts[existingIdx] = updated;
+
+          newMovements.push({
+            id: `mov-${Date.now()}-${item.vendorItemId}`,
+            productId: existing.id,
+            productName: existing.name,
+            type: 'STOCK_IN',
+            quantity: item.quantity,
+            previousStock: existing.currentStock,
+            newStock: newStock,
+            unitPrice: item.unitPrice,
+            totalAmount: item.total,
+            date: now,
+            referenceNotes: `Delivery Received from ${order.vendorName} (Order #${order.id})`,
+            handledBy: 'Laxmi Inward Desk',
+          });
+        } else {
+          const newSku = `${item.category.substring(0, 3).toUpperCase()}-${Date.now().toString().slice(-4)}`;
+          const newProduct: Product = {
+            id: `prod-${Date.now()}-${item.vendorItemId}`,
+            sku: newSku,
+            name: item.name,
+            category: item.category,
+            color: item.color,
+            fabric: item.fabric,
+            sizeOrLength: 'Standard',
+            currentStock: item.quantity,
+            lowStockThreshold: 10,
+            costPrice: item.unitPrice,
+            sellingPrice: item.retailEstimate,
+            supplier: order.vendorName,
+            rackLocation: item.targetRack,
+            totalUnitsReceived: item.quantity,
+            totalUnitsSold: 0,
+            lastRestockedDate: now,
+            createdAt: now,
+          };
+
+          updatedProducts = [newProduct, ...updatedProducts];
+
+          newMovements.push({
+            id: `mov-${Date.now()}-${item.vendorItemId}`,
+            productId: newProduct.id,
+            productName: newProduct.name,
+            type: 'STOCK_IN',
+            quantity: item.quantity,
+            previousStock: 0,
+            newStock: item.quantity,
+            unitPrice: item.unitPrice,
+            totalAmount: item.total,
+            date: now,
+            referenceNotes: `First Batch Delivery from ${order.vendorName} (Order #${order.id})`,
+            handledBy: 'Laxmi Inward Desk',
+          });
+        }
+      }
+
+      const updatedOrder: PurchaseOrder = {
+        ...order,
+        status: 'STOCKED',
+        stockInCompletedAt: now,
+      };
+
+      const updatedOrders = [...purchaseOrders];
+      updatedOrders[orderIdx] = updatedOrder;
+
+      updateProductsState(updatedProducts);
+      updateMovementsState([...newMovements, ...movements]);
+      updatePurchaseOrdersState(updatedOrders);
+
+      try {
+        confetti({
+          particleCount: 90,
+          spread: 70,
+          origin: { y: 0.6 },
+        });
+      } catch {}
+
+      toast.success(`📦 Stock In Completed for Order #${order.id}!`, {
+        description: `Added +${order.totalItems} pieces directly to your shop shelves.`,
+      });
+
+      return { success: true, message: 'Stock added successfully' };
+    },
+    [purchaseOrders, products, movements, updateProductsState, updateMovementsState, updatePurchaseOrdersState]
+  );
+
+  // ACTION: Request Return of Defective Stock to Vendor
+  const requestReturnOrder = useCallback(
+    (orderId: string, defectiveQty: number, reason: string) => {
+      const orderIdx = purchaseOrders.findIndex((o) => o.id === orderId || o.trackingHash === orderId);
+      if (orderIdx === -1) {
+        return { success: false, message: 'Order not found' };
+      }
+
+      const order = purchaseOrders[orderIdx];
+      const now = new Date().toISOString();
+      const primaryItem = order.items[0];
+
+      // Update shop product stock (deduct defective pieces)
+      let updatedProducts = [...products];
+      if (primaryItem) {
+        const prodIdx = updatedProducts.findIndex(
+          (p) => p.name.toLowerCase() === primaryItem.name.toLowerCase() || p.supplier === order.vendorName
+        );
+        if (prodIdx !== -1) {
+          const prod = updatedProducts[prodIdx];
+          const newStock = Math.max(0, prod.currentStock - defectiveQty);
+          updatedProducts[prodIdx] = {
+            ...prod,
+            currentStock: newStock,
+          };
+
+          const movement: StockMovement = {
+            id: `mov-${Date.now()}-ret`,
+            productId: prod.id,
+            productName: prod.name,
+            type: 'RETURN',
+            quantity: defectiveQty,
+            previousStock: prod.currentStock,
+            newStock: newStock,
+            unitPrice: primaryItem.unitPrice,
+            totalAmount: defectiveQty * primaryItem.unitPrice,
+            date: now,
+            referenceNotes: `Defective Return to ${order.vendorName}: ${reason}`,
+            handledBy: 'Laxmi Quality Audit',
+          };
+          updateMovementsState([movement, ...movements]);
+        }
+      }
+
+      const returnRequest: ReturnRequest = {
+        quantity: defectiveQty,
+        reason,
+        requestedAt: Date.now(),
+        status: 'REQUESTED',
+        truckNumber: 'TN 28 CZ 1109 (Return Vehicle)',
+        driverName: 'Murugan Reverse Logistics',
+        driverPhone: '+91 94432 55190',
+      };
+
+      const updatedOrder: PurchaseOrder = {
+        ...order,
+        returnRequest,
+      };
+
+      const updatedOrders = [...purchaseOrders];
+      updatedOrders[orderIdx] = updatedOrder;
+
+      updateProductsState(updatedProducts);
+      updatePurchaseOrdersState(updatedOrders);
+
+      toast.info(`🔄 Defective Return Initiated (${defectiveQty} pcs)`, {
+        description: `Vendor accepted return request. Return pickup vehicle assigned.`,
+      });
+
+      return { success: true, message: 'Return request placed' };
+    },
+    [purchaseOrders, products, movements, updateProductsState, updateMovementsState, updatePurchaseOrdersState]
+  );
+
+  const confirmReturnLoaded = useCallback(
+    (orderId: string) => {
+      const orderIdx = purchaseOrders.findIndex((o) => o.id === orderId || o.trackingHash === orderId);
+      if (orderIdx === -1) return;
+
+      const order = purchaseOrders[orderIdx];
+      if (!order.returnRequest) return;
+
+      const updatedOrder: PurchaseOrder = {
+        ...order,
+        returnRequest: {
+          ...order.returnRequest,
+          status: 'RETURN_IN_TRANSIT',
+        },
+      };
+
+      const updatedOrders = [...purchaseOrders];
+      updatedOrders[orderIdx] = updatedOrder;
+      updatePurchaseOrdersState(updatedOrders);
+
+      toast.success('🚚 Defective Items Loaded onto Truck!', {
+        description: 'Reverse transit to vendor mill started.',
+      });
+    },
+    [purchaseOrders, updatePurchaseOrdersState]
+  );
+
+  const getPurchaseOrderById = useCallback(
+    (orderIdOrHash: string) => {
+      return purchaseOrders.find(
+        (o) => o.id.toLowerCase() === orderIdOrHash.toLowerCase() || o.trackingHash.toLowerCase() === orderIdOrHash.toLowerCase()
+      );
+    },
+    [purchaseOrders]
   );
 
   // ACTION: Quick Adjust
@@ -364,8 +760,8 @@ export function InventoryProvider({ children }: { children: React.ReactNode }) {
         unitPrice: prod.costPrice,
         totalAmount: Math.abs(diff) * prod.costPrice,
         date: now,
-        referenceNotes: `Manual Audit Adjustment: ${reason}`,
-        handledBy: 'Owner Physical Audit',
+        referenceNotes: `Manual Physical Count: ${reason}`,
+        handledBy: 'Laxmi Store Count',
       };
 
       updateProductsState(updatedProducts);
@@ -400,10 +796,11 @@ export function InventoryProvider({ children }: { children: React.ReactNode }) {
 
   // ACTION: Reset to Sample Data
   const resetToSampleData = useCallback(() => {
-    const { products: p, movements: m, transactions: t } = StorageService.resetToSampleData();
+    const { products: p, movements: m, transactions: t, purchaseOrders: o } = StorageService.resetToSampleData();
     setProducts(p);
     setMovements(m);
     setTransactions(t);
+    setPurchaseOrders(o);
     toast.success('Sample Inventory Data Restored', {
       description: 'Loaded default catalog with Sarees, Shirts, Dhotis, Uniforms & analytics data.',
     });
@@ -415,10 +812,19 @@ export function InventoryProvider({ children }: { children: React.ReactNode }) {
         products,
         movements,
         transactions,
+        purchaseOrders,
         stats,
         isLoading,
         activeTab,
         setActiveTab,
+        language,
+        setLanguage,
+        t,
+        theme,
+        setTheme,
+        toggleTheme,
+        activeTrackingOrderId,
+        setActiveTrackingOrderId,
         searchQuery,
         setSearchQuery,
         selectedCategory,
@@ -429,6 +835,11 @@ export function InventoryProvider({ children }: { children: React.ReactNode }) {
         updateProduct,
         deleteProduct,
         resetToSampleData,
+        createPurchaseOrder,
+        completeStockInFromOrder,
+        requestReturnOrder,
+        confirmReturnLoaded,
+        getPurchaseOrderById,
         lowStockProducts,
         outOfStockProducts,
         slowMovingProducts,

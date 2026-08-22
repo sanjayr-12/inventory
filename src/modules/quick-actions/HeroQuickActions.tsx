@@ -14,6 +14,7 @@ import {
   Flame,
   TrendingUp,
   MapPin,
+  Truck,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { formatCurrency, formatNumber, getStockStatus } from '@/src/lib/utils';
@@ -26,7 +27,9 @@ export const HeroQuickActions: React.FC = () => {
     outOfStockProducts,
     lowStockProducts,
     slowMovingProducts,
+    purchaseOrders,
     setSearchQuery,
+    t,
   } = useInventory();
 
   const [instantSearch, setInstantSearch] = useState('');
@@ -47,109 +50,118 @@ export const HeroQuickActions: React.FC = () => {
     setActiveTab('inventory');
   };
 
+  const activeInwardOrders = purchaseOrders.filter((o) => o.status !== 'STOCKED');
+
   const primaryActions = [
     {
+      id: 'vendor-orders' as const,
+      title: t.orderFromWeaversTitle,
+      tagline: t.orderFromWeaversDesc,
+      metric: `${stats.activeInwardOrdersCount} Active`,
+      metricLabel: stats.activeInwardOrdersCount > 0 ? t.trucksInTransit : '7 Mills available',
+      icon: <Truck className="w-7 h-7 text-[#d96528] dark:text-[#ea7637]" />,
+      accentBg: 'bg-[#faeedf] dark:bg-[#3d2415]',
+      borderColor: 'border-[#e8dfd1] dark:border-[#3d3731] hover:border-[#d96528]',
+    },
+    {
       id: 'stock-in' as const,
-      title: 'Add New Stock',
-      tagline: 'When fresh goods arrive from weavers',
-      metric: `${formatNumber(stats.totalUnitsInStock)} pcs`,
-      metricLabel: 'In shop now',
-      icon: <PackagePlus className="w-7 h-7 text-[#d96528]" />,
-      accentBg: 'bg-[#faeedf]',
-      borderColor: 'border-[#e8dfd1] hover:border-[#d96528]',
+      title: t.addNewStockTitle,
+      tagline: t.addNewStockDesc,
+      metric: `${formatNumber(stats.totalUnitsInStock)} ${t.pieces}`,
+      metricLabel: t.inShopNow,
+      icon: <PackagePlus className="w-7 h-7 text-[#b45309] dark:text-[#f59e0b]" />,
+      accentBg: 'bg-[#fcf3e6] dark:bg-[#382b18]',
+      borderColor: 'border-[#e8dfd1] dark:border-[#3d3731] hover:border-[#b45309]',
     },
     {
       id: 'sales' as const,
-      title: 'Bill a Customer',
-      tagline: 'Fast sale & automatic stock deduction',
+      title: t.billCustomerTitle,
+      tagline: t.billCustomerDesc,
       metric: `${formatCurrency(stats.todaysRevenue)}`,
-      metricLabel: "Today's sales",
-      icon: <ShoppingCart className="w-7 h-7 text-[#2d6a3f]" />,
-      accentBg: 'bg-[#eef5ee]',
-      borderColor: 'border-[#e8dfd1] hover:border-[#2d6a3f]',
+      metricLabel: t.todaysSales,
+      icon: <ShoppingCart className="w-7 h-7 text-[#2d6a3f] dark:text-[#4ade80]" />,
+      accentBg: 'bg-[#eef5ee] dark:bg-[#1c3322]',
+      borderColor: 'border-[#e8dfd1] dark:border-[#3d3731] hover:border-[#2d6a3f]',
     },
     {
       id: 'inventory' as const,
-      title: 'Check Shop Stock',
-      tagline: 'See what is on shelves right now',
+      title: t.checkStockTitle,
+      tagline: t.checkStockDesc,
       metric: `${stats.totalUniqueProducts} Types`,
-      metricLabel: 'Catalog items',
-      icon: <Boxes className="w-7 h-7 text-[#b45309]" />,
-      accentBg: 'bg-[#fcf3e6]',
-      borderColor: 'border-[#e8dfd1] hover:border-[#b45309]',
-    },
-    {
-      id: 'low-stock' as const,
-      title: 'Items to Reorder',
-      tagline: 'What is low or completely sold out',
-      metric: `${outOfStockProducts.length + lowStockProducts.length} Items`,
-      metricLabel: outOfStockProducts.length > 0 ? `${outOfStockProducts.length} Sold Out!` : 'Need restock',
-      icon: <AlertTriangle className="w-7 h-7 text-[#b9381e]" />,
-      accentBg: 'bg-[#fdf0ed]',
-      borderColor: 'border-[#e8dfd1] hover:border-[#b9381e]',
+      metricLabel: 'Catalog varieties',
+      icon: <Boxes className="w-7 h-7 text-[#57534e] dark:text-[#d6cec2]" />,
+      accentBg: 'bg-[#f5eee3] dark:bg-[#2b251f]',
+      borderColor: 'border-[#e8dfd1] dark:border-[#3d3731] hover:border-[#57534e]',
     },
   ];
 
   return (
     <div className="space-y-6 sm:space-y-8">
       {/* 1. TOP QUICK SEARCH BAR (Instant answer for shop staff) */}
-      <div className="bg-white rounded-3xl p-4 sm:p-5 border border-[#e8dfd1] shadow-xs space-y-3">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-          <div>
-            <h2 className="text-base sm:text-lg font-black text-[#1c1917]">
-              Laxmi Textiles Store Register
+      <div className="bg-white dark:bg-[#201c18] rounded-3xl p-4 sm:p-5 border border-[#e8dfd1] dark:border-[#38322b] shadow-xs space-y-3 transition-colors">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-2xl bg-[#faeedf] dark:bg-[#3d2415] flex items-center justify-center text-[#d96528] dark:text-[#ea7637] shrink-0 font-bold">
+            <Search className="w-5 h-5" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <h2 className="text-sm font-black text-[#1c1917] dark:text-[#f5eee3]">
+              {t.storeRegister}
             </h2>
-            <p className="text-xs text-[#78716c]">
-              What would you like to check or do today?
+            <p className="text-xs text-[#78716c] dark:text-[#a89f91] truncate">
+              {t.searchPlaceholder}
             </p>
           </div>
         </div>
 
         <div className="relative">
-          <Search className="w-5 h-5 text-[#8c827a] absolute left-4 top-3.5" />
           <input
             type="text"
-            placeholder="Type any saree, shirt, dhoti, color, or rack name to find stock immediately..."
+            placeholder={t.searchPlaceholder}
             value={instantSearch}
             onChange={(e) => setInstantSearch(e.target.value)}
-            className="w-full pl-12 pr-4 py-3 bg-[#fbf8f2] border border-[#e0d3c1] rounded-2xl text-sm sm:text-base text-[#1c1917] font-medium focus:outline-hidden focus:ring-2 focus:ring-[#d96528]"
+            className="w-full px-4 py-3.5 pl-11 bg-[#fbf8f2] dark:bg-[#28231e] border border-[#e0d3c1] dark:border-[#3d3731] rounded-2xl text-sm sm:text-base text-[#1c1917] dark:text-[#f5eee3] placeholder-[#8c827a] dark:placeholder-[#6b6257] font-semibold focus:ring-2 focus:ring-[#d96528] focus:outline-hidden"
           />
+          <Search className="w-5 h-5 text-[#8c827a] absolute left-4 top-4" />
         </div>
 
-        {/* Instant Search Results Dropdown */}
+        {/* Live Instant Search Dropdown on Home */}
         <AnimatePresence>
           {searchResults.length > 0 && (
             <motion.div
-              initial={{ opacity: 0, y: -5 }}
+              initial={{ opacity: 0, y: -4 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -5 }}
-              className="bg-[#fbf8f2] rounded-2xl p-3 border border-[#e8dfd1] space-y-2"
+              exit={{ opacity: 0, y: -4 }}
+              className="pt-2 border-t border-[#f0e6d8] dark:border-[#38322b] space-y-1.5"
             >
-              <div className="text-[11px] font-bold text-[#8c827a] uppercase px-1">
-                Instant Stock Lookup Results:
+              <div className="text-[11px] font-bold text-[#8c827a] uppercase tracking-wider px-1">
+                Matching Shelf Items (Click to View)
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                {searchResults.map((item) => {
-                  const status = getStockStatus(item);
+                {searchResults.map((p) => {
+                  const status = getStockStatus(p);
                   return (
                     <div
-                      key={item.id}
-                      onClick={() => handleSearchResultClick(item.name)}
-                      className="p-3 bg-white rounded-xl border border-[#e8dfd1] hover:border-[#d96528] cursor-pointer flex items-center justify-between transition-all"
+                      key={p.id}
+                      onClick={() => handleSearchResultClick(p.name)}
+                      className="p-3 bg-[#fbf8f2] dark:bg-[#28231e] hover:bg-[#faeedf] dark:hover:bg-[#3d2415] rounded-2xl border border-[#e8dfd1] dark:border-[#3d3731] cursor-pointer flex items-center justify-between gap-2 transition-colors"
                     >
-                      <div>
-                        <div className="font-bold text-xs sm:text-sm text-[#1c1917]">{item.name}</div>
-                        <div className="text-[11px] text-[#78716c] flex items-center gap-1 mt-0.5">
+                      <div className="min-w-0">
+                        <div className="font-extrabold text-xs text-[#1c1917] dark:text-[#f5eee3] truncate">
+                          {p.name}
+                        </div>
+                        <div className="text-[11px] text-[#78716c] dark:text-[#a89f91] flex items-center gap-1.5 mt-0.5">
                           <MapPin className="w-3 h-3 text-[#d96528]" />
-                          <span>{item.rackLocation}</span>
+                          <span>{p.rackLocation}</span>
+                          <span>• {p.category}</span>
                         </div>
                       </div>
-                      <div className="text-right">
+
+                      <div className="text-right shrink-0">
                         <span className={`text-xs font-black px-2 py-0.5 rounded-full border ${status.badgeClass}`}>
-                          {item.currentStock} pcs
+                          {p.currentStock} {t.pieces}
                         </span>
-                        <div className="text-[10px] text-[#8c827a] font-semibold mt-0.5">
-                          {formatCurrency(item.sellingPrice)}
+                        <div className="text-[11px] text-[#78716c] dark:text-[#a89f91] font-semibold mt-0.5">
+                          {formatCurrency(p.sellingPrice)}
                         </div>
                       </div>
                     </div>
@@ -161,113 +173,153 @@ export const HeroQuickActions: React.FC = () => {
         </AnimatePresence>
       </div>
 
-      {/* 2. THE 4 BIG PRIMARY ACTION CARDS */}
-      <div>
-        <div className="text-xs font-black uppercase tracking-wider text-[#8c827a] mb-3 px-1">
-          Quick Actions
+      {/* 2. INCOMING TRUCK BANNER IF ACTIVE DELIVERY EXISTS */}
+      {activeInwardOrders.length > 0 && (
+        <div
+          onClick={() => setActiveTab('vendor-orders')}
+          className="bg-gradient-to-r from-[#faeedf] to-[#f5eee3] dark:from-[#382216] dark:to-[#2b2118] border-2 border-[#d96528] rounded-3xl p-5 shadow-xs cursor-pointer hover:shadow-md transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+        >
+          <div className="flex items-center gap-3.5">
+            <div className="w-12 h-12 rounded-2xl bg-[#d96528] text-white flex items-center justify-center text-xl shrink-0 shadow-xs">
+              🚚
+            </div>
+            <div>
+              <div className="flex items-center gap-1.5 text-xs font-black text-[#c45418] dark:text-[#ea7637] uppercase">
+                <span className="w-2 h-2 rounded-full bg-[#d96528] animate-ping" />
+                Live Inward Vehicle Tracker
+              </div>
+              <h3 className="text-sm sm:text-base font-black text-[#1c1917] dark:text-[#f5eee3]">
+                {activeInwardOrders.length} Delivery Truck(s) on Highway to Laxmi Textiles
+              </h3>
+              <p className="text-xs text-[#57534e] dark:text-[#a89f91]">
+                Latest: #{activeInwardOrders[0].id} from {activeInwardOrders[0].vendorName} ({activeInwardOrders[0].totalItems} pcs). Tap to view live GPS map.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-1.5 text-xs font-black text-[#d96528] dark:text-[#ea7637] self-end sm:self-center shrink-0">
+            <span>View Live Route Map</span>
+            <ArrowRight className="w-4 h-4" />
+          </div>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {primaryActions.map((action, idx) => (
+      )}
+
+      {/* 3. FOUR LARGE TOUCH ACTION CARDS */}
+      <div>
+        <div className="text-xs font-black uppercase tracking-wider text-[#8c827a] dark:text-[#a89f91] mb-3 px-1">
+          {t.whatToDoToday}
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4">
+          {primaryActions.map((action) => (
             <motion.div
               key={action.id}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.2, delay: idx * 0.04 }}
               whileHover={{ y: -2 }}
               whileTap={{ scale: 0.98 }}
               onClick={() => setActiveTab(action.id)}
-              className={`group cursor-pointer bg-white rounded-3xl p-5 border-2 ${action.borderColor} shadow-xs hover:shadow-md transition-all duration-200 flex flex-col justify-between min-h-[170px]`}
+              className={`bg-white dark:bg-[#201c18] rounded-3xl p-5 sm:p-6 border ${action.borderColor} shadow-xs hover:shadow-md transition-all cursor-pointer flex flex-col justify-between`}
             >
               <div>
                 <div className="flex items-center justify-between">
-                  <div className={`w-12 h-12 rounded-2xl ${action.accentBg} flex items-center justify-center`}>
+                  <div className={`w-12 h-12 rounded-2xl ${action.accentBg} flex items-center justify-center shadow-2xs`}>
                     {action.icon}
                   </div>
-                  <div className="text-right">
-                    <div className="text-lg sm:text-xl font-black text-[#1c1917]">{action.metric}</div>
-                    <div className="text-[10px] font-bold text-[#8c827a]">{action.metricLabel}</div>
-                  </div>
+                  <span className="text-[11px] font-black text-[#d96528] dark:text-[#ea7637] flex items-center gap-1">
+                    {t.openAction} <ArrowRight className="w-3.5 h-3.5" />
+                  </span>
                 </div>
 
-                <h3 className="text-base sm:text-lg font-black text-[#1c1917] mt-4 group-hover:text-[#d96528] transition-colors">
-                  {action.title}
-                </h3>
-                <p className="text-xs text-[#78716c] mt-0.5">{action.tagline}</p>
+                <div className="mt-4">
+                  <h3 className="text-base sm:text-lg font-black text-[#1c1917] dark:text-[#f5eee3]">
+                    {action.title}
+                  </h3>
+                  <p className="text-xs text-[#78716c] dark:text-[#a89f91] mt-0.5 leading-relaxed">
+                    {action.tagline}
+                  </p>
+                </div>
               </div>
 
-              <div className="mt-4 pt-3 border-t border-[#f0e6d8] flex items-center justify-between text-xs font-bold text-[#57534e] group-hover:text-[#d96528]">
-                <span>Open {action.title}</span>
-                <div className="w-6 h-6 rounded-lg bg-[#f5eee3] group-hover:bg-[#d96528] group-hover:text-white flex items-center justify-center transition-colors">
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </div>
+              <div className="mt-5 pt-3 border-t border-[#f0e6d8] dark:border-[#38322b] flex items-center justify-between text-xs">
+                <span className="text-[#78716c] dark:text-[#a89f91] font-medium">{action.metricLabel}</span>
+                <span className="font-extrabold text-[#1c1917] dark:text-[#f5eee3] text-sm">{action.metric}</span>
               </div>
             </motion.div>
           ))}
         </div>
       </div>
 
-      {/* 3. SIMPLE STORE NUMBERS AT A GLANCE */}
-      <div>
-        <div className="text-xs font-black uppercase tracking-wider text-[#8c827a] mb-3 px-1">
-          Today's Store Snapshot
+      {/* 4. TODAY'S STORE SNAPSHOT */}
+      <div className="bg-[#f5eee3] dark:bg-[#241f1a] rounded-3xl p-5 sm:p-6 border border-[#e4d8c5] dark:border-[#38322b] space-y-4 transition-colors">
+        <div className="flex items-center justify-between border-b border-[#e4d8c5] dark:border-[#38322b] pb-3">
+          <div className="flex items-center gap-2">
+            <TrendingUp className="w-5 h-5 text-[#d96528] dark:text-[#ea7637]" />
+            <h3 className="font-black text-sm sm:text-base text-[#1c1917] dark:text-[#f5eee3]">
+              {t.todaysSnapshot}
+            </h3>
+          </div>
+          <span className="text-xs text-[#78716c] dark:text-[#a89f91] font-bold">
+            Live Store Status
+          </span>
         </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3.5 sm:gap-4">
-          {/* Card 1: Total Stock */}
+
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           <div
             onClick={() => setActiveTab('inventory')}
-            className="cursor-pointer bg-white rounded-3xl p-4 sm:p-5 border border-[#e8dfd1] hover:border-[#d96528] shadow-xs transition-all"
+            className="bg-white dark:bg-[#201c18] p-4 rounded-2xl border border-[#e8dfd1] dark:border-[#38322b] cursor-pointer hover:border-[#d96528] transition-all"
           >
-            <span className="text-[11px] font-bold text-[#8c827a] uppercase block">Total Available Clothes</span>
-            <div className="text-xl sm:text-2xl font-black text-[#1c1917] mt-1">
-              {formatNumber(stats.totalUnitsInStock)}{' '}
-              <span className="text-xs font-normal text-[#78716c]">pieces</span>
-            </div>
-            <span className="text-[11px] text-[#2d6a3f] font-bold mt-1 block">
-              Across {stats.totalUniqueProducts} varieties
+            <span className="text-[10px] font-bold uppercase text-[#8c827a] dark:text-[#a89f91] block">
+              {t.totalClothes}
             </span>
+            <div className="text-xl sm:text-2xl font-black text-[#1c1917] dark:text-[#f5eee3] mt-1">
+              {formatNumber(stats.totalUnitsInStock)} <span className="text-xs font-normal text-[#78716c] dark:text-[#a89f91]">{t.pieces}</span>
+            </div>
+            <div className="text-[11px] text-[#78716c] dark:text-[#a89f91] mt-0.5">
+              {t.acrossVarieties} {stats.totalUniqueProducts} varieties
+            </div>
           </div>
 
-          {/* Card 2: Today's Revenue */}
           <div
             onClick={() => setActiveTab('sales')}
-            className="cursor-pointer bg-white rounded-3xl p-4 sm:p-5 border border-[#e8dfd1] hover:border-[#2d6a3f] shadow-xs transition-all"
+            className="bg-white dark:bg-[#201c18] p-4 rounded-2xl border border-[#e8dfd1] dark:border-[#38322b] cursor-pointer hover:border-[#2d6a3f] transition-all"
           >
-            <span className="text-[11px] font-bold text-[#8c827a] uppercase block">Today's Total Sales</span>
-            <div className="text-xl sm:text-2xl font-black text-[#2d6a3f] mt-1">
+            <span className="text-[10px] font-bold uppercase text-[#8c827a] dark:text-[#a89f91] block">
+              {t.todaysSales}
+            </span>
+            <div className="text-xl sm:text-2xl font-black text-[#2d6a3f] dark:text-[#4ade80] mt-1">
               {formatCurrency(stats.todaysRevenue)}
             </div>
-            <span className="text-[11px] text-[#78716c] font-semibold mt-1 block">
-              {stats.todaysSalesCount} pieces sold today
-            </span>
+            <div className="text-[11px] text-[#78716c] dark:text-[#a89f91] mt-0.5">
+              {stats.todaysSalesCount} {t.piecesSoldToday}
+            </div>
           </div>
 
-          {/* Card 3: Items to Reorder */}
           <div
             onClick={() => setActiveTab('low-stock')}
-            className="cursor-pointer bg-white rounded-3xl p-4 sm:p-5 border border-[#e8dfd1] hover:border-[#b9381e] shadow-xs transition-all"
+            className="bg-white dark:bg-[#201c18] p-4 rounded-2xl border border-[#e8dfd1] dark:border-[#38322b] cursor-pointer hover:border-[#b9381e] transition-all"
           >
-            <span className="text-[11px] font-bold text-[#8c827a] uppercase block">Items Running Low</span>
-            <div className="text-xl sm:text-2xl font-black text-[#b9381e] mt-1">
-              {stats.outOfStockCount + stats.lowStockCount}{' '}
-              <span className="text-xs font-normal text-[#78716c]">items</span>
-            </div>
-            <span className="text-[11px] text-[#b9381e] font-bold mt-1 block">
-              {stats.outOfStockCount > 0 ? `⚠️ ${stats.outOfStockCount} completely empty` : 'Need restock'}
+            <span className="text-[10px] font-bold uppercase text-[#8c827a] dark:text-[#a89f91] block">
+              {t.itemsRunningLow}
             </span>
+            <div className="text-xl sm:text-2xl font-black text-[#b9381e] dark:text-[#f87171] mt-1">
+              {stats.outOfStockCount + stats.lowStockCount}
+            </div>
+            <div className="text-[11px] text-[#78716c] dark:text-[#a89f91] mt-0.5">
+              {stats.outOfStockCount} {t.completelyEmpty}
+            </div>
           </div>
 
-          {/* Card 4: Money in Slow Stock */}
           <div
             onClick={() => setActiveTab('analytics')}
-            className="cursor-pointer bg-white rounded-3xl p-4 sm:p-5 border border-[#e8dfd1] hover:border-[#704282] shadow-xs transition-all"
+            className="bg-white dark:bg-[#201c18] p-4 rounded-2xl border border-[#e8dfd1] dark:border-[#38322b] cursor-pointer hover:border-[#704282] transition-all"
           >
-            <span className="text-[11px] font-bold text-[#8c827a] uppercase block">Money in Slow Items</span>
-            <div className="text-xl sm:text-2xl font-black text-[#704282] mt-1">
+            <span className="text-[10px] font-bold uppercase text-[#8c827a] dark:text-[#a89f91] block">
+              {t.moneyInSlowStock}
+            </span>
+            <div className="text-xl sm:text-2xl font-black text-[#704282] dark:text-[#c084fc] mt-1">
               {formatCurrency(stats.deadStockCapital)}
             </div>
-            <span className="text-[11px] text-[#704282] font-bold mt-1 block">
-              {slowMovingProducts.length} items sitting on shelves
-            </span>
+            <div className="text-[11px] text-[#78716c] dark:text-[#a89f91] mt-0.5">
+              {stats.deadStockCount} {t.sittingOnShelves}
+            </div>
           </div>
         </div>
       </div>

@@ -6,15 +6,16 @@ import { Product } from '@/src/types';
 import {
   AlertTriangle,
   PackagePlus,
-  MessageCircle,
+  Truck,
   MapPin,
   CheckCircle2,
+  Building2,
+  ArrowRight,
 } from 'lucide-react';
 import { formatCurrency } from '@/src/lib/utils';
-import { toast } from 'sonner';
 
 export const LowStockModule: React.FC = () => {
-  const { outOfStockProducts, lowStockProducts, recordStockIn } = useInventory();
+  const { outOfStockProducts, lowStockProducts, recordStockIn, setActiveTab, t } = useInventory();
   const [selectedProductForReorder, setSelectedProductForReorder] = useState<Product | null>(null);
   const [reorderQty, setReorderQty] = useState(25);
 
@@ -29,99 +30,91 @@ export const LowStockModule: React.FC = () => {
       sellingPrice: product.sellingPrice,
       supplier: product.supplier,
       rackLocation: product.rackLocation,
-      notes: 'Quick Reorder from Alert Center',
+      notes: 'Quick Inward Restock from Alert Center',
     });
     setSelectedProductForReorder(null);
   };
 
-  const generateWhatsAppMessage = (product: Product, qty: number) => {
-    const text = encodeURIComponent(
-      `Hello ${product.supplier},\n\nLaxmi Textiles urgent purchase order:\n• Product: ${product.name}\n• Quantity: ${qty} pieces\n• Destination: Laxmi Textiles Store\n\nPlease confirm dispatch date and billing details. Thank you!`
-    );
-    window.open(`https://wa.me/?text=${text}`, '_blank');
-    toast.success(`Generated purchase draft for ${product.supplier}`);
+  const handleGoToVendorOrders = () => {
+    setActiveTab('vendor-orders');
   };
 
   return (
     <div className="space-y-6 sm:space-y-8 max-w-4xl mx-auto">
       {/* Banner */}
-      <div className="bg-[#f5eee3] p-5 sm:p-6 rounded-3xl border border-[#e4d8c5] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="bg-[#f5eee3] dark:bg-[#241f1a] p-5 sm:p-6 rounded-3xl border border-[#e4d8c5] dark:border-[#38322b] flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-colors">
         <div>
-          <h2 className="text-xl sm:text-2xl font-black text-[#1c1917]">
-            ⚠️ Items to Reorder & Alerts
+          <h2 className="text-xl sm:text-2xl font-black text-[#1c1917] dark:text-[#f5eee3]">
+            {t.reorderAlertsTitle}
           </h2>
-          <p className="text-xs sm:text-sm text-[#57534e] mt-0.5">
-            Spot clothes that are running out and send WhatsApp orders to weavers in 1 tap.
+          <p className="text-xs sm:text-sm text-[#57534e] dark:text-[#a89f91] mt-0.5">
+            {t.reorderAlertsSub}
           </p>
         </div>
 
-        <div className="bg-white px-3.5 py-2 rounded-2xl border border-[#e8dfd1] text-xs font-bold self-start sm:self-center flex items-center gap-2">
-          <span className="w-2.5 h-2.5 rounded-full bg-[#b9381e] animate-pulse" />
-          <span className="text-[#1c1917]">{totalAlerts} Items Need Restocking</span>
-        </div>
+        <button
+          onClick={handleGoToVendorOrders}
+          className="bg-[#d96528] hover:bg-[#c45418] text-white px-4 py-2.5 rounded-2xl text-xs font-black self-start sm:self-center flex items-center gap-2 shadow-xs cursor-pointer transition-all"
+        >
+          <Truck className="w-4 h-4" />
+          <span>{t.vendorOrders} ({totalAlerts})</span>
+        </button>
       </div>
 
-      {/* 1. OUT OF STOCK (URGENT) */}
+      {/* 1. OUT OF STOCK ITEMS */}
       <div className="space-y-3">
-        <div className="flex items-center gap-2">
-          <span className="w-6 h-6 rounded-full bg-[#fdf0ed] text-[#b9381e] flex items-center justify-center font-bold text-xs border border-[#f8d0c8]">
-            🔴
-          </span>
-          <h3 className="text-base sm:text-lg font-black text-[#1c1917]">
-            Completely Sold Out (0 pieces left)
-          </h3>
-          <span className="text-xs bg-[#fdf0ed] text-[#b9381e] font-bold px-2 py-0.5 rounded-full border border-[#f8d0c8]">
-            {outOfStockProducts.length}
-          </span>
+        <div className="flex items-center gap-2 text-[#b9381e] dark:text-[#f87171] font-black text-sm px-1">
+          <span className="w-2.5 h-2.5 rounded-full bg-[#b9381e] dark:bg-[#f87171] animate-ping" />
+          <span>{t.completelySoldOut}</span>
         </div>
 
         {outOfStockProducts.length === 0 ? (
-          <div className="p-6 bg-white rounded-3xl border border-[#e8dfd1] text-center text-xs text-[#78716c] flex items-center justify-center gap-2">
-            <CheckCircle2 className="w-4 h-4 text-[#2d6a3f]" />
-            No clothes are completely empty right now. Good stock availability!
+          <div className="bg-white dark:bg-[#201c18] rounded-3xl border border-[#e8dfd1] dark:border-[#38322b] p-6 text-center text-xs text-[#78716c] dark:text-[#a89f91] flex items-center justify-center gap-2">
+            <CheckCircle2 className="w-4 h-4 text-[#2d6a3f] dark:text-[#4ade80]" />
+            <span>Awesome! No items are completely sold out right now.</span>
           </div>
         ) : (
-          <div className="space-y-3">
-            {outOfStockProducts.map((product) => (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {outOfStockProducts.map((p) => (
               <div
-                key={product.id}
-                className="bg-white rounded-3xl border-2 border-[#f8d0c8] p-4 sm:p-5 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+                key={p.id}
+                className="bg-white dark:bg-[#201c18] rounded-3xl border-2 border-[#f8d0c8] dark:border-[#52221b] p-5 shadow-xs flex flex-col justify-between space-y-3"
               >
                 <div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-black px-2 py-0.5 rounded-full bg-[#b9381e] text-white">
-                      0 PIECES (EMPTY)
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#fdf0ed] dark:bg-[#3d1a15] text-[#b9381e] dark:text-[#f87171] border border-[#f8d0c8] dark:border-[#52221b]">
+                      🔴 0 {t.pieces} Left
                     </span>
-                    <span className="text-xs font-bold text-[#8c827a] uppercase">{product.category}</span>
+                    <span className="text-[11px] text-[#78716c] dark:text-[#a89f91] font-semibold">{p.category}</span>
                   </div>
 
-                  <h4 className="text-base font-black text-[#1c1917] mt-1">{product.name}</h4>
+                  <h4 className="font-black text-sm sm:text-base text-[#1c1917] dark:text-[#f5eee3] mt-2">
+                    {p.name}
+                  </h4>
 
-                  <div className="text-xs text-[#78716c] mt-1 flex flex-wrap items-center gap-2 sm:gap-4">
-                    <span>Weaver: <strong>{product.supplier}</strong></span>
-                    <span>• Shelf: <strong>{product.rackLocation}</strong></span>
-                    <span>• Buying Cost: <strong>{formatCurrency(product.costPrice)}/pc</strong></span>
+                  <div className="text-xs text-[#78716c] dark:text-[#a89f91] space-y-0.5 mt-1">
+                    <div className="flex items-center gap-1">
+                      <MapPin className="w-3 h-3 text-[#d96528]" />
+                      <span>Shelf: {p.rackLocation}</span>
+                    </div>
+                    <div>Weaver: <strong>{p.supplier}</strong></div>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2 shrink-0">
-                  <button
-                    onClick={() => generateWhatsAppMessage(product, 30)}
-                    className="py-2.5 px-4 rounded-xl bg-[#2d6a3f] hover:bg-[#235331] text-white font-bold text-xs flex items-center gap-1.5 shadow-xs cursor-pointer"
-                  >
-                    <MessageCircle className="w-4 h-4" />
-                    WhatsApp Order
-                  </button>
+                <div className="pt-3 border-t border-[#f0e6d8] dark:border-[#38322b] flex items-center justify-between gap-2">
+                  <div className="text-xs font-bold text-[#1c1917] dark:text-[#f5eee3]">
+                    MRP: {formatCurrency(p.sellingPrice)}
+                  </div>
 
-                  <button
-                    onClick={() => {
-                      setSelectedProductForReorder(product);
-                      setReorderQty(30);
-                    }}
-                    className="py-2.5 px-3.5 rounded-xl bg-[#1c1917] hover:bg-[#292524] text-white font-bold text-xs flex items-center gap-1 cursor-pointer"
-                  >
-                    <PackagePlus className="w-4 h-4" /> Restock
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={handleGoToVendorOrders}
+                      className="py-1.5 px-3 rounded-xl bg-[#d96528] text-white font-bold text-xs flex items-center gap-1 cursor-pointer"
+                    >
+                      <Truck className="w-3.5 h-3.5" />
+                      <span>{t.orderFromWeaverLiveTrack}</span>
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}
@@ -129,136 +122,64 @@ export const LowStockModule: React.FC = () => {
         )}
       </div>
 
-      {/* 2. RUNNING LOW */}
-      <div className="space-y-3 pt-2">
-        <div className="flex items-center gap-2">
-          <span className="w-6 h-6 rounded-full bg-[#fcf3e6] text-[#b45309] flex items-center justify-center font-bold text-xs border border-[#fae2c0]">
-            🟠
-          </span>
-          <h3 className="text-base sm:text-lg font-black text-[#1c1917]">
-            Running Low (≤ 5 pieces left)
-          </h3>
-          <span className="text-xs bg-[#fcf3e6] text-[#b45309] font-bold px-2 py-0.5 rounded-full border border-[#fae2c0]">
-            {lowStockProducts.length}
-          </span>
+      {/* 2. RUNNING LOW ITEMS */}
+      <div className="space-y-3">
+        <div className="flex items-center gap-2 text-[#b45309] dark:text-[#f59e0b] font-black text-sm px-1">
+          <span className="w-2.5 h-2.5 rounded-full bg-[#b45309] dark:bg-[#f59e0b]" />
+          <span>{t.runningLow}</span>
         </div>
 
-        <div className="space-y-3">
-          {lowStockProducts.map((product) => (
-            <div
-              key={product.id}
-              className="bg-white rounded-3xl border border-[#fae2c0] p-4 sm:p-5 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4"
-            >
-              <div>
-                <div className="flex items-center gap-2">
-                  <span className="text-xs font-black px-2.5 py-0.5 rounded-full bg-[#fcf3e6] text-[#b45309] border border-[#fae2c0]">
-                    Only {product.currentStock} left!
-                  </span>
-                  <span className="text-xs font-bold text-[#8c827a] uppercase">{product.category}</span>
-                </div>
-
-                <h4 className="text-sm sm:text-base font-black text-[#1c1917] mt-1">{product.name}</h4>
-
-                <div className="text-xs text-[#78716c] mt-1 flex flex-wrap items-center gap-2 sm:gap-4">
-                  <span>Weaver: <strong>{product.supplier}</strong></span>
-                  <span>• Shelf: <strong>{product.rackLocation}</strong></span>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-2 shrink-0">
-                <button
-                  onClick={() => generateWhatsAppMessage(product, 25)}
-                  className="py-2 px-3.5 rounded-xl bg-[#f5eee3] hover:bg-[#ede3d3] text-[#1c1917] text-xs font-bold flex items-center gap-1 cursor-pointer"
-                >
-                  <MessageCircle className="w-3.5 h-3.5 text-[#2d6a3f]" /> WhatsApp
-                </button>
-                <button
-                  onClick={() => {
-                    setSelectedProductForReorder(product);
-                    setReorderQty(20);
-                  }}
-                  className="py-2 px-3.5 rounded-xl bg-[#d96528] hover:bg-[#c45418] text-white text-xs font-black shadow-xs cursor-pointer"
-                >
-                  + Restock
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Restock Modal */}
-      {selectedProductForReorder && (
-        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-2xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-md w-full p-6 border border-[#e8dfd1] shadow-xl space-y-4">
-            <div className="flex items-center justify-between border-b border-[#f0e6d8] pb-3">
-              <h3 className="font-black text-base text-[#1c1917]">Quick Restock</h3>
-              <button
-                onClick={() => setSelectedProductForReorder(null)}
-                className="text-[#8c827a] hover:text-[#1c1917] font-bold cursor-pointer"
-              >
-                ✕
-              </button>
-            </div>
-
-            <div>
-              <span className="text-xs text-[#78716c]">Item:</span>
-              <h4 className="text-base font-extrabold text-[#1c1917]">
-                {selectedProductForReorder.name}
-              </h4>
-              <p className="text-xs text-[#78716c] mt-0.5">
-                Current: <strong>{selectedProductForReorder.currentStock} pcs</strong> • Supplier:{' '}
-                <strong>{selectedProductForReorder.supplier}</strong>
-              </p>
-            </div>
-
-            <div className="space-y-3">
-              <div>
-                <label className="block text-xs font-extrabold text-[#44403c] uppercase mb-1">
-                  How many pieces received?
-                </label>
-                <input
-                  type="number"
-                  min="1"
-                  value={reorderQty}
-                  onChange={(e) => setReorderQty(Number(e.target.value))}
-                  className="w-full px-4 py-2.5 bg-[#fbf8f2] border-2 border-[#eed6c0] rounded-2xl text-xl font-black text-[#1c1917] focus:border-[#d96528] focus:outline-hidden"
-                />
-              </div>
-
-              <div className="p-3 bg-[#f5eee3] rounded-2xl text-xs space-y-1">
-                <div className="flex justify-between">
-                  <span className="text-[#78716c]">Cost per piece:</span>
-                  <strong className="text-[#1c1917]">{formatCurrency(selectedProductForReorder.costPrice)}</strong>
-                </div>
-                <div className="flex justify-between font-bold text-[#1c1917]">
-                  <span>Total Cost:</span>
-                  <span className="text-[#2d6a3f]">
-                    {formatCurrency(reorderQty * selectedProductForReorder.costPrice)}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            <div className="flex gap-2 pt-2">
-              <button
-                type="button"
-                onClick={() => setSelectedProductForReorder(null)}
-                className="flex-1 py-2.5 rounded-xl border border-[#e8dfd1] text-xs font-bold text-[#57534e] cursor-pointer"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={() => handleQuickRestock(selectedProductForReorder)}
-                className="flex-1 py-2.5 rounded-xl bg-[#d96528] hover:bg-[#c45418] text-white text-xs font-black shadow-xs cursor-pointer"
-              >
-                Save (+{reorderQty} pcs)
-              </button>
-            </div>
+        {lowStockProducts.length === 0 ? (
+          <div className="bg-white dark:bg-[#201c18] rounded-3xl border border-[#e8dfd1] dark:border-[#38322b] p-6 text-center text-xs text-[#78716c] dark:text-[#a89f91] flex items-center justify-center gap-2">
+            <CheckCircle2 className="w-4 h-4 text-[#2d6a3f] dark:text-[#4ade80]" />
+            <span>All stock levels are healthy!</span>
           </div>
-        </div>
-      )}
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {lowStockProducts.map((p) => (
+              <div
+                key={p.id}
+                className="bg-white dark:bg-[#201c18] rounded-3xl border border-[#fae2c0] dark:border-[#52301c] p-5 shadow-xs flex flex-col justify-between space-y-3"
+              >
+                <div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#fcf3e6] dark:bg-[#382b18] text-[#b45309] dark:text-[#f59e0b] border border-[#fae2c0] dark:border-[#52301c]">
+                      🟠 Only {p.currentStock} {t.pieces} Left
+                    </span>
+                    <span className="text-[11px] text-[#78716c] dark:text-[#a89f91] font-semibold">{p.category}</span>
+                  </div>
+
+                  <h4 className="font-black text-sm sm:text-base text-[#1c1917] dark:text-[#f5eee3] mt-2">
+                    {p.name}
+                  </h4>
+
+                  <div className="text-xs text-[#78716c] dark:text-[#a89f91] space-y-0.5 mt-1">
+                    <div className="flex items-center gap-1">
+                      <MapPin className="w-3 h-3 text-[#d96528]" />
+                      <span>Shelf: {p.rackLocation}</span>
+                    </div>
+                    <div>Weaver: <strong>{p.supplier}</strong></div>
+                  </div>
+                </div>
+
+                <div className="pt-3 border-t border-[#f0e6d8] dark:border-[#38322b] flex items-center justify-between gap-2">
+                  <div className="text-xs font-bold text-[#1c1917] dark:text-[#f5eee3]">
+                    MRP: {formatCurrency(p.sellingPrice)}
+                  </div>
+
+                  <button
+                    onClick={handleGoToVendorOrders}
+                    className="py-1.5 px-3 rounded-xl bg-[#faeedf] dark:bg-[#3d2415] hover:bg-[#f6dfc7] text-[#c45418] dark:text-[#ea7637] font-bold text-xs flex items-center gap-1 cursor-pointer border border-[#eed6c0] dark:border-[#52301c]"
+                  >
+                    <Truck className="w-3.5 h-3.5" />
+                    <span>{t.orderFromWeaversTab}</span>
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 };

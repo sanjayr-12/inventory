@@ -1,25 +1,32 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
-  --background: #fbf8f2;
-  --foreground: #1c1917;
-  --font-sans: var(--font-sans), system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-sans: var(--font-jakarta), 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-sans);
+@theme {
+  --font-sans: var(--font-jakarta), 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
-body {
+html, body {
+  font-family: var(--font-jakarta), 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   background-color: #fbf8f2;
   color: #1c1917;
-  font-family: var(--font-sans);
   background-image: 
     linear-gradient(to right, rgba(217, 101, 40, 0.04) 1px, transparent 1px),
     linear-gradient(to bottom, rgba(217, 101, 40, 0.04) 1px, transparent 1px);
   background-size: 32px 32px;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+html.dark, html.dark body {
+  background-color: #181512 !important;
+  color: #fbf8f2 !important;
+  background-image: 
+    linear-gradient(to right, rgba(234, 118, 55, 0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(234, 118, 55, 0.04) 1px, transparent 1px);
 }
 
 /* Elegant Warm Scrollbar */
@@ -30,9 +37,15 @@ body {
 ::-webkit-scrollbar-track {
   background: #f3ede2;
 }
+html.dark ::-webkit-scrollbar-track {
+  background: #24201c;
+}
 ::-webkit-scrollbar-thumb {
   background: #d8cabd;
   border-radius: 9999px;
+}
+html.dark ::-webkit-scrollbar-thumb {
+  background: #484039;
 }
 ::-webkit-scrollbar-thumb:hover {
   background: #c7b5a4;
